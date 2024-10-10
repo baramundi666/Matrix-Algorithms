@@ -2,7 +2,7 @@ class BaseAlgorithm:
     def __init__(self):
         self.name = self.__class__.__name__
 
-    def run(self, **kwargs):
+    def run(self, *args):
         pass
 
     def __str__(self):
