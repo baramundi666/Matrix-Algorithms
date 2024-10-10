@@ -1,7 +1,3 @@
-venv:
-	@echo "Activating virtual environment"
-	source .venv/bin/activate
-
 install:
 	@echo "Installing dependencies"
 	pip3 install -r requirements.txt
