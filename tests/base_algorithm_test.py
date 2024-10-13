@@ -6,5 +6,5 @@ class BaseAlgorithmTest:
         pass
 
     @classmethod
-    def generate_data(cls):
+    def generate_data(cls, *args):
         pass

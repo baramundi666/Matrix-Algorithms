@@ -3,12 +3,16 @@ from src.utils import add, subtract, split_into_block_matrices, multiply_one_by_
 
 
 class StrassenAlgorithm(BaseAlgorithm):
+    def __init__(self):
+        super().__init__()
+        self.matrix_3 = None
+
     def run(self, matrix_1, matrix_2):
         """
         matrix_1, matrix_2 - square matrices with size 2^n x 2^n
         """
         matrix_3 = self.__rec(matrix_1, matrix_2)
-        return matrix_3
+        self.matrix_3 = matrix_3
 
 
     def __rec(self, matrix_1, matrix_2):

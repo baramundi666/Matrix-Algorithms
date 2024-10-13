@@ -23,11 +23,20 @@ def multiply_one_by_one_matrices(matrix_1, matrix_2):
 
 def split_into_block_matrices(matrix):
     n = len(matrix)
-    matrix_11 = matrix[:n//2][:n//2]
-    matrix_12 = matrix[n//2:][:n//2]
-    matrix_21 = matrix[:n//2][n//2:]
-    matrix_22 = matrix[n//2:][n//2:]
-
+    matrix_11 = [[0 for _ in range(n//2)] for _ in range(n//2)]
+    matrix_12 = [[0 for _ in range(n//2)] for _ in range(n//2)]
+    matrix_21 = [[0 for _ in range(n//2)] for _ in range(n//2)]
+    matrix_22 = [[0 for _ in range(n//2)] for _ in range(n//2)]
+    for i in range(n):
+        for j in range(n):
+            if i < n//2 and j < n//2:
+                matrix_11[i][j] = matrix[i][j]
+            elif i < n//2 and j >= n//2:
+                matrix_12[i][j-n//2] = matrix[i][j]
+            elif i >= n//2 and j < n//2:
+                matrix_21[i-n//2][j] = matrix[i][j]
+            elif i >= n//2 and j >= n//2:
+                matrix_22[i-n//2][j-n//2] = matrix[i][j]
     return matrix_11, matrix_12, matrix_21, matrix_22
 
 def connect_block_matrices(matrix_11, matrix_12, matrix_21, matrix_22):
@@ -43,5 +52,4 @@ def connect_block_matrices(matrix_11, matrix_12, matrix_21, matrix_22):
                 matrix[i][j] = matrix_21[i-n][j]
             elif i>= n and j >= n:
                 matrix[i][j] = matrix_22[i-n][j-n]
-
     return matrix

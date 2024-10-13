@@ -1,8 +1,8 @@
-from tests.test_example_algorithm import TestExampleAlgorithm
+from tests.test_strassen_algorithm import TestStrassenAlgorithm
 
 
 def main():
-    test = TestExampleAlgorithm()
+    test = TestStrassenAlgorithm()
     test.run()
 
 if __name__ == "__main__":
