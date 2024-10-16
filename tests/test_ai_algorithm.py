@@ -1,13 +1,14 @@
 from random import uniform
-from src.algorithms.strassen_algorithm import StrassenAlgorithm
+
+from src.algorithms.ai_algorithm import AIAlgorithm
 from tests.base_algorithm_test import BaseAlgorithmTest
 from tests.utils import assert_matrix_multiplication_is_correct
 
 
-class TestStrassenAlgorithm(BaseAlgorithmTest):
+class TestAIAlgorithm(BaseAlgorithmTest):
     def __init__(self):
         super().__init__()
-        self.algorithm = StrassenAlgorithm()
+        self.algorithm = AIAlgorithm()
 
     def run(self):
         for test_size in [2**k for k in range(1, 5)]:
@@ -24,4 +25,3 @@ class TestStrassenAlgorithm(BaseAlgorithmTest):
             for j in range(test_size):
                 cls.matrix_1[i][j] = uniform(a, b)
                 cls.matrix_2[i][j] = uniform(a, b)
-

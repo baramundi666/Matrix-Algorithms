@@ -1,5 +1,10 @@
-class AIALGORITHM:
+from src.base_algorithm import BaseAlgorithm
+
+
+class AIAlgorithm(BaseAlgorithm):
     def __init__(self):
+        super().__init__()
+        self.matrix_3 = None
         self.h = [0 for _ in range(76)]
 
     # Dodawanie dwóch macierzy
@@ -648,6 +653,9 @@ class AIALGORITHM:
 
         return self.fill_matrix(C, m, k, m // 4, k // 5)
 
+    def run(self, A, B):
+        self.matrix_3 = self.ai(A, B)
+
 
 A1 = [
     [1, 2, 3, 4, 5],
@@ -663,9 +671,9 @@ B1 = [
     [0, 1, 1, 0, 0],
     [1, 0, 1, 1, 1]
 ]
-ai_inst = AIALGORITHM()
-result = ai_inst.ai(A1, B1)
-result2 = ai_inst.multiply_matrices(A1, B1)
-print(result)
-print(result2)
-assert result2 == result, "Error"
+# ai_inst = AIAlgorithm()
+# result = ai_inst.ai(A1, B1)
+# result2 = ai_inst.multiply_matrices(A1, B1)
+# print(result)
+# print(result2)
+# assert result2 == result, "Error"

@@ -1,6 +1,10 @@
-class BinetAlgorithm:
+from src.base_algorithm import BaseAlgorithm
+
+
+class BinetAlgorithm(BaseAlgorithm):
     def __init__(self):
-        self.name = self.__class__.__name__
+        super().__init__()
+        self.matrix_3 = None
 
     #dzielenie macierzy na 4 podmacierze
     def split_matrix(self, M):
@@ -33,11 +37,9 @@ class BinetAlgorithm:
         M2 = [C21[i] + C22[i] for i in range(len(C21))]
         return M1 + M2
 
-    def __str__(self):
-        return self.name
+    def run(self, A, B):
+        self.matrix_3 = self.binet(A, B)
 
-    def __repr__(self):
-        return self.name
 
 
 
