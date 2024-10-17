@@ -13,7 +13,8 @@ class TestBinetAlgorithm(BaseAlgorithmTest):
     def run(self):
         for test_size in [2**k for k in range(1, 5)]:
             self.generate_data(test_size)
-            self._run_time_test(test_size, self.matrix_1, self.matrix_2)
+            self._run_time_test(f"{test_size} x {test_size}", self.matrix_1, self.matrix_2)
+            self._extract_calculator_data()
             assert_matrix_multiplication_is_correct(self.matrix_1, self.matrix_2, self.algorithm.matrix_3)
 
     @classmethod

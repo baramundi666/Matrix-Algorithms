@@ -7,13 +7,6 @@ class AIAlgorithm(BaseAlgorithm):
         self.matrix_3 = None
         self.h = [0 for _ in range(76)]
 
-    # Dodawanie dwóch macierzy
-    def add_matrices(self, A, B):
-        return [[A[i][j] + B[i][j] for j in range(len(A[0]))] for i in range(len(A))]
-
-    # Odejmowanie dwóch macierzy
-    def subtract_matrices(self, A, B):
-        return [[A[i][j] - B[i][j] for j in range(len(A[0]))] for i in range(len(A))]
 
     # Mnożenie dwóch macierzy
     def multiply_matrices(self, A, B):
@@ -24,9 +17,6 @@ class AIAlgorithm(BaseAlgorithm):
                     result[i][j] += A[i][k] * B[k][j]
         return result
 
-    # Negacja elementów macierzy
-    def negate_matrix(self, M):
-        return [[-M[i][j] for j in range(len(M[0]))] for i in range(len(M))]
 
     # Dzielenie macierzy na bloki
     def divide_matrix(self, M, num_block_rows, num_block_cols):
@@ -62,8 +52,7 @@ class AIAlgorithm(BaseAlgorithm):
 
         return C_result
 
-    # Metoda wykonująca algorytm ai
-    def ai(self, A, B):
+    def __ai(self, A, B):
         m = len(A)
         n = len(A[0])
         k = len(B[0])
@@ -75,60 +64,60 @@ class AIAlgorithm(BaseAlgorithm):
         A_blocks = self.divide_matrix(A, 4, 5)
         B_blocks = self.divide_matrix(B, 5, 5)
 
-        self.h[0] = self.ai(A_blocks[2][1], self.subtract_matrices(
-            self.subtract_matrices(self.negate_matrix(B_blocks[1][0]), B_blocks[1][4]), B_blocks[2][0]))
+        self.h[0] = self.__ai(A_blocks[2][1], self.calculator.subtract(
+            self.calculator.subtract(self.calculator.negate(B_blocks[1][0]), B_blocks[1][4]), B_blocks[2][0]))
 
-        self.h[1] = self.ai(self.add_matrices(A_blocks[1][1], self.subtract_matrices(A_blocks[1][4], A_blocks[2][4])),
-                            self.negate_matrix(self.add_matrices(B_blocks[1][4], B_blocks[4][0])))
+        self.h[1] = self.__ai(self.calculator.add(A_blocks[1][1], self.calculator.subtract(A_blocks[1][4], A_blocks[2][4])),
+                            self.calculator.negate(self.calculator.add(B_blocks[1][4], B_blocks[4][0])))
 
-        self.h[2] = self.ai(
-            self.add_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[2][0]), A_blocks[3][0]),
-                                   A_blocks[3][1]), self.add_matrices(self.negate_matrix(B_blocks[0][0]), B_blocks[1][4]))
+        self.h[2] = self.__ai(
+            self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[2][0]), A_blocks[3][0]),
+                                   A_blocks[3][1]), self.calculator.add(self.calculator.negate(B_blocks[0][0]), B_blocks[1][4]))
 
-        self.h[3] = self.ai(self.add_matrices(self.add_matrices(A_blocks[0][1], A_blocks[0][3]), A_blocks[2][3]),
-                            self.negate_matrix(self.add_matrices(B_blocks[1][4], B_blocks[3][0])))
+        self.h[3] = self.__ai(self.calculator.add(self.calculator.add(A_blocks[0][1], A_blocks[0][3]), A_blocks[2][3]),
+                            self.calculator.negate(self.calculator.add(B_blocks[1][4], B_blocks[3][0])))
 
-        self.h[4] = self.ai(self.add_matrices(self.add_matrices(A_blocks[0][4], A_blocks[1][1]), A_blocks[1][4]),
-                            self.add_matrices(self.negate_matrix(B_blocks[1][3]), B_blocks[4][0]))
+        self.h[4] = self.__ai(self.calculator.add(self.calculator.add(A_blocks[0][4], A_blocks[1][1]), A_blocks[1][4]),
+                            self.calculator.add(self.calculator.negate(B_blocks[1][3]), B_blocks[4][0]))
 
-        self.h[5] = self.ai(
-            self.subtract_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[1][1]), A_blocks[1][4]),
-                                   A_blocks[3][4]), self.add_matrices(B_blocks[1][2], B_blocks[4][0]))
+        self.h[5] = self.__ai(
+            self.calculator.subtract(self.calculator.subtract(self.calculator.negate(A_blocks[1][1]), A_blocks[1][4]),
+                                   A_blocks[3][4]), self.calculator.add(B_blocks[1][2], B_blocks[4][0]))
 
-        self.h[6] = self.ai(
-            self.subtract_matrices(self.add_matrices(self.negate_matrix(A_blocks[0][0]), A_blocks[3][0]),
-                                   A_blocks[3][1]), self.add_matrices(B_blocks[0][0], B_blocks[1][3]))
+        self.h[6] = self.__ai(
+            self.calculator.subtract(self.calculator.add(self.calculator.negate(A_blocks[0][0]), A_blocks[3][0]),
+                                   A_blocks[3][1]), self.calculator.add(B_blocks[0][0], B_blocks[1][3]))
 
-        self.h[7] = self.ai(self.subtract_matrices(A_blocks[2][1], self.add_matrices(A_blocks[2][2], A_blocks[3][2])),
-                            self.add_matrices(self.negate_matrix(B_blocks[1][2]), B_blocks[2][0]))
+        self.h[7] = self.__ai(self.calculator.subtract(A_blocks[2][1], self.calculator.add(A_blocks[2][2], A_blocks[3][2])),
+                            self.calculator.add(self.calculator.negate(B_blocks[1][2]), B_blocks[2][0]))
 
-        self.h[8] = self.ai(
-            self.add_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[0][1]), A_blocks[0][3]),
-                              A_blocks[3][3]), self.add_matrices(B_blocks[1][2], B_blocks[3][0]))
+        self.h[8] = self.__ai(
+            self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[0][1]), A_blocks[0][3]),
+                              A_blocks[3][3]), self.calculator.add(B_blocks[1][2], B_blocks[3][0]))
 
-        self.h[9] = self.ai(self.add_matrices(A_blocks[1][1], A_blocks[1][4]), B_blocks[4][0])
+        self.h[9] = self.__ai(self.calculator.add(A_blocks[1][1], A_blocks[1][4]), B_blocks[4][0])
 
-        self.h[10] = self.ai(
-            self.add_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[1][0]), A_blocks[3][0]),
-                              A_blocks[3][1]), self.add_matrices(self.negate_matrix(B_blocks[0][0]), B_blocks[1][1]))
+        self.h[10] = self.__ai(
+            self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[1][0]), A_blocks[3][0]),
+                              A_blocks[3][1]), self.calculator.add(self.calculator.negate(B_blocks[0][0]), B_blocks[1][1]))
 
-        self.h[11] = self.ai(self.subtract_matrices(A_blocks[3][0], A_blocks[3][1]), B_blocks[0][0])
-        self.h[12] = self.ai(self.add_matrices(self.add_matrices(A_blocks[0][1], A_blocks[0][3]), A_blocks[1][3]),
-                             self.add_matrices(B_blocks[1][1], B_blocks[3][0]))
-        self.h[13] = self.ai(self.add_matrices(self.subtract_matrices(A_blocks[0][2], A_blocks[2][1]), A_blocks[2][2]),
-                             self.add_matrices(B_blocks[1][3], B_blocks[2][0]))
-        self.h[14] = self.ai(self.subtract_matrices(self.negate_matrix(A_blocks[0][1]), A_blocks[0][3]), B_blocks[3][0])
-        self.h[15] = self.ai(self.add_matrices(self.negate_matrix(A_blocks[2][1]), A_blocks[2][2]), B_blocks[2][0])
-        self.h[16] = self.ai(
-            self.add_matrices(
-                self.subtract_matrices(
-                    self.add_matrices(
-                        self.subtract_matrices(
-                            self.add_matrices(
-                                self.subtract_matrices(
-                                    self.add_matrices(
-                                        self.subtract_matrices(
-                                            self.add_matrices(A_blocks[0][1], A_blocks[0][3]),
+        self.h[11] = self.__ai(self.calculator.subtract(A_blocks[3][0], A_blocks[3][1]), B_blocks[0][0])
+        self.h[12] = self.__ai(self.calculator.add(self.calculator.add(A_blocks[0][1], A_blocks[0][3]), A_blocks[1][3]),
+                             self.calculator.add(B_blocks[1][1], B_blocks[3][0]))
+        self.h[13] = self.__ai(self.calculator.add(self.calculator.subtract(A_blocks[0][2], A_blocks[2][1]), A_blocks[2][2]),
+                             self.calculator.add(B_blocks[1][3], B_blocks[2][0]))
+        self.h[14] = self.__ai(self.calculator.subtract(self.calculator.negate(A_blocks[0][1]), A_blocks[0][3]), B_blocks[3][0])
+        self.h[15] = self.__ai(self.calculator.add(self.calculator.negate(A_blocks[2][1]), A_blocks[2][2]), B_blocks[2][0])
+        self.h[16] = self.__ai(
+            self.calculator.add(
+                self.calculator.subtract(
+                    self.calculator.add(
+                        self.calculator.subtract(
+                            self.calculator.add(
+                                self.calculator.subtract(
+                                    self.calculator.add(
+                                        self.calculator.subtract(
+                                            self.calculator.add(A_blocks[0][1], A_blocks[0][3]),
                                             A_blocks[1][0]
                                         ),
                                         A_blocks[1][1]
@@ -147,27 +136,27 @@ class AIAlgorithm(BaseAlgorithm):
             ),
             B_blocks[1][1]
         )
-        self.h[17] = self.ai(A_blocks[1][0],
-                             self.add_matrices(self.add_matrices(B_blocks[0][0], B_blocks[0][1]), B_blocks[4][1]))
-        self.h[18] = self.ai(self.negate_matrix(A_blocks[1][2]),
-                             self.add_matrices(self.add_matrices(B_blocks[2][0], B_blocks[2][1]), B_blocks[4][1]))
-        self.h[19] = self.ai(self.add_matrices(
-            self.add_matrices(self.add_matrices(self.negate_matrix(A_blocks[0][4]), A_blocks[1][0]), A_blocks[1][2]),
-            self.negate_matrix(A_blocks[1][4])), self.subtract_matrices(
-            self.add_matrices(self.subtract_matrices(self.negate_matrix(B_blocks[0][0]), B_blocks[0][1]),
+        self.h[17] = self.__ai(A_blocks[1][0],
+                             self.calculator.add(self.calculator.add(B_blocks[0][0], B_blocks[0][1]), B_blocks[4][1]))
+        self.h[18] = self.__ai(self.calculator.negate(A_blocks[1][2]),
+                             self.calculator.add(self.calculator.add(B_blocks[2][0], B_blocks[2][1]), B_blocks[4][1]))
+        self.h[19] = self.__ai(self.calculator.add(
+            self.calculator.add(self.calculator.add(self.calculator.negate(A_blocks[0][4]), A_blocks[1][0]), A_blocks[1][2]),
+            self.calculator.negate(A_blocks[1][4])), self.calculator.subtract(
+            self.calculator.add(self.calculator.subtract(self.calculator.negate(B_blocks[0][0]), B_blocks[0][1]),
                               B_blocks[0][3]), B_blocks[4][1]))
-        self.h[20] = self.ai(
-            self.add_matrices(self.add_matrices(A_blocks[1][0], A_blocks[1][2]), self.negate_matrix(A_blocks[1][4])),
+        self.h[20] = self.__ai(
+            self.calculator.add(self.calculator.add(A_blocks[1][0], A_blocks[1][2]), self.calculator.negate(A_blocks[1][4])),
             B_blocks[4][1])
-        self.h[21] = self.ai(
-            self.subtract_matrices(self.subtract_matrices(A_blocks[0][2], A_blocks[0][3]), A_blocks[1][3]),
-            self.add_matrices(
-                self.add_matrices(
-                    self.subtract_matrices(
-                        self.add_matrices(
-                            self.add_matrices(self.add_matrices(B_blocks[0][0], B_blocks[0][1]),
-                                              self.negate_matrix(B_blocks[0][3])),
-                            self.negate_matrix(B_blocks[2][0])
+        self.h[21] = self.__ai(
+            self.calculator.subtract(self.calculator.subtract(A_blocks[0][2], A_blocks[0][3]), A_blocks[1][3]),
+            self.calculator.add(
+                self.calculator.add(
+                    self.calculator.subtract(
+                        self.calculator.add(
+                            self.calculator.add(self.calculator.add(B_blocks[0][0], B_blocks[0][1]),
+                                              self.calculator.negate(B_blocks[0][3])),
+                            self.calculator.negate(B_blocks[2][0])
                         ),
                         B_blocks[2][1]
                     ),
@@ -177,296 +166,296 @@ class AIAlgorithm(BaseAlgorithm):
             )
         )
 
-        self.h[22] = self.ai(A_blocks[0][2],
-                             self.add_matrices(self.add_matrices(self.negate_matrix(B_blocks[2][0]), B_blocks[2][3]),
+        self.h[22] = self.__ai(A_blocks[0][2],
+                             self.calculator.add(self.calculator.add(self.calculator.negate(B_blocks[2][0]), B_blocks[2][3]),
                                                B_blocks[3][3]))
 
-        self.h[23] = self.ai(A_blocks[0][4],
-                             self.add_matrices(
-                                 self.subtract_matrices(self.negate_matrix(B_blocks[3][3]), B_blocks[4][0]),
+        self.h[23] = self.__ai(A_blocks[0][4],
+                             self.calculator.add(
+                                 self.calculator.subtract(self.calculator.negate(B_blocks[3][3]), B_blocks[4][0]),
                                  B_blocks[4][3]))
 
-        self.h[24] = self.ai(self.negate_matrix(A_blocks[0][0]),
-                             self.subtract_matrices(B_blocks[0][0], B_blocks[0][3]))
+        self.h[24] = self.__ai(self.calculator.negate(A_blocks[0][0]),
+                             self.calculator.subtract(B_blocks[0][0], B_blocks[0][3]))
 
-        self.h[25] = self.ai(
-            self.add_matrices(self.add_matrices(self.negate_matrix(A_blocks[0][2]), A_blocks[0][3]), A_blocks[0][4]),
+        self.h[25] = self.__ai(
+            self.calculator.add(self.calculator.add(self.calculator.negate(A_blocks[0][2]), A_blocks[0][3]), A_blocks[0][4]),
             B_blocks[3][3])
 
-        self.h[26] = self.ai(self.add_matrices(self.subtract_matrices(A_blocks[0][2], A_blocks[2][0]), A_blocks[2][2]),
-                             self.add_matrices(self.add_matrices(self.subtract_matrices(B_blocks[0][0], B_blocks[0][3]),
+        self.h[26] = self.__ai(self.calculator.add(self.calculator.subtract(A_blocks[0][2], A_blocks[2][0]), A_blocks[2][2]),
+                             self.calculator.add(self.calculator.add(self.calculator.subtract(B_blocks[0][0], B_blocks[0][3]),
                                                                  B_blocks[0][4]), B_blocks[2][4]))
 
-        self.h[27] = self.ai(self.negate_matrix(A_blocks[2][3]),
-                             self.negate_matrix(
-                                 self.add_matrices(self.add_matrices(B_blocks[2][4], B_blocks[3][0]), B_blocks[3][4])))
+        self.h[27] = self.__ai(self.calculator.negate(A_blocks[2][3]),
+                             self.calculator.negate(
+                                 self.calculator.add(self.calculator.add(B_blocks[2][4], B_blocks[3][0]), B_blocks[3][4])))
 
-        self.h[28] = self.ai(A_blocks[2][0],
-                             self.add_matrices(self.add_matrices(B_blocks[0][0], B_blocks[0][4]), B_blocks[2][4]))
+        self.h[28] = self.__ai(A_blocks[2][0],
+                             self.calculator.add(self.calculator.add(B_blocks[0][0], B_blocks[0][4]), B_blocks[2][4]))
 
-        self.h[29] = self.ai(self.add_matrices(self.subtract_matrices(A_blocks[2][0], A_blocks[2][2]), A_blocks[2][3]),
+        self.h[29] = self.__ai(self.calculator.add(self.calculator.subtract(A_blocks[2][0], A_blocks[2][2]), A_blocks[2][3]),
                              B_blocks[2][4])
 
-        self.h[30] = self.ai(
-            self.subtract_matrices(
-                self.subtract_matrices(self.negate_matrix(A_blocks[0][3]), A_blocks[0][4]),
+        self.h[30] = self.__ai(
+            self.calculator.subtract(
+                self.calculator.subtract(self.calculator.negate(A_blocks[0][3]), A_blocks[0][4]),
                 A_blocks[2][3]
             ),
-            self.subtract_matrices(
-                self.add_matrices(
-                    self.subtract_matrices(self.negate_matrix(B_blocks[3][3]), B_blocks[4][0]),
+            self.calculator.subtract(
+                self.calculator.add(
+                    self.calculator.subtract(self.calculator.negate(B_blocks[3][3]), B_blocks[4][0]),
                     B_blocks[4][3]
                 ),
                 B_blocks[4][4]
             )
         )
 
-        self.h[31] = self.ai(self.add_matrices(self.add_matrices(A_blocks[1][0], A_blocks[3][0]), A_blocks[3][3]),
-                             self.subtract_matrices(
-                                 self.subtract_matrices(self.subtract_matrices(B_blocks[0][2], B_blocks[3][0]),
+        self.h[31] = self.__ai(self.calculator.add(self.calculator.add(A_blocks[1][0], A_blocks[3][0]), A_blocks[3][3]),
+                             self.calculator.subtract(
+                                 self.calculator.subtract(self.calculator.subtract(B_blocks[0][2], B_blocks[3][0]),
                                                         B_blocks[3][1]), B_blocks[3][2]))
 
-        self.h[32] = self.ai(A_blocks[3][2],
-                             self.negate_matrix(self.add_matrices(B_blocks[2][0], B_blocks[2][2])))
+        self.h[32] = self.__ai(A_blocks[3][2],
+                             self.calculator.negate(self.calculator.add(B_blocks[2][0], B_blocks[2][2])))
 
-        self.h[33] = self.ai(A_blocks[3][3],
-                             self.add_matrices(self.add_matrices(self.negate_matrix(B_blocks[0][2]), B_blocks[3][0]),
+        self.h[33] = self.__ai(A_blocks[3][3],
+                             self.calculator.add(self.calculator.add(self.calculator.negate(B_blocks[0][2]), B_blocks[3][0]),
                                                B_blocks[3][2]))
 
-        self.h[34] = self.ai(self.negate_matrix(A_blocks[3][4]),
-                             self.add_matrices(self.add_matrices(B_blocks[0][2], B_blocks[4][0]), B_blocks[4][2]))
+        self.h[34] = self.__ai(self.calculator.negate(A_blocks[3][4]),
+                             self.calculator.add(self.calculator.add(B_blocks[0][2], B_blocks[4][0]), B_blocks[4][2]))
 
-        self.h[35] = self.ai(
-            self.subtract_matrices(self.subtract_matrices(A_blocks[1][2], A_blocks[1][4]), A_blocks[3][4]),
-            self.add_matrices(self.add_matrices(self.add_matrices(B_blocks[2][0], B_blocks[2][1]), B_blocks[2][2]),
+        self.h[35] = self.__ai(
+            self.calculator.subtract(self.calculator.subtract(A_blocks[1][2], A_blocks[1][4]), A_blocks[3][4]),
+            self.calculator.add(self.calculator.add(self.calculator.add(B_blocks[2][0], B_blocks[2][1]), B_blocks[2][2]),
                               B_blocks[4][1]))
 
-        self.h[36] = self.ai(
-            self.add_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[3][0]), A_blocks[3][3]),
+        self.h[36] = self.__ai(
+            self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[3][0]), A_blocks[3][3]),
                               A_blocks[3][4]),
             B_blocks[0][2])
 
-        self.h[37] = self.ai(self.subtract_matrices(
-            self.add_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[1][2]), A_blocks[2][0]),
+        self.h[37] = self.__ai(self.calculator.subtract(
+            self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[1][2]), A_blocks[2][0]),
                               A_blocks[2][2]), A_blocks[2][3]),
-                             self.add_matrices(
-                                 self.add_matrices(self.add_matrices(B_blocks[2][4], B_blocks[3][0]), B_blocks[3][1]),
+                             self.calculator.add(
+                                 self.calculator.add(self.calculator.add(B_blocks[2][4], B_blocks[3][0]), B_blocks[3][1]),
                                  B_blocks[3][4]))
 
-        self.h[38] = self.ai(self.add_matrices(
-            self.subtract_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[2][0]), A_blocks[3][0]),
+        self.h[38] = self.__ai(self.calculator.add(
+            self.calculator.subtract(self.calculator.subtract(self.calculator.negate(A_blocks[2][0]), A_blocks[3][0]),
                                    A_blocks[3][3]), A_blocks[3][4]),
-                             self.add_matrices(
-                                 self.add_matrices(self.add_matrices(B_blocks[0][2], B_blocks[4][0]), B_blocks[4][2]),
+                             self.calculator.add(
+                                 self.calculator.add(self.calculator.add(B_blocks[0][2], B_blocks[4][0]), B_blocks[4][2]),
                                  B_blocks[4][4]))
 
-        self.h[39] = self.ai(self.add_matrices(
-            self.add_matrices(self.add_matrices(self.negate_matrix(A_blocks[0][2]), A_blocks[0][3]), A_blocks[0][4]),
-            self.negate_matrix(A_blocks[3][3])),
-                             self.add_matrices(self.add_matrices(
-                                 self.subtract_matrices(self.negate_matrix(B_blocks[2][0]), B_blocks[2][2]),
+        self.h[39] = self.__ai(self.calculator.add(
+            self.calculator.add(self.calculator.add(self.calculator.negate(A_blocks[0][2]), A_blocks[0][3]), A_blocks[0][4]),
+            self.calculator.negate(A_blocks[3][3])),
+                             self.calculator.add(self.calculator.add(
+                                 self.calculator.subtract(self.calculator.negate(B_blocks[2][0]), B_blocks[2][2]),
                                  B_blocks[2][3]), B_blocks[3][3]))
 
-        self.h[40] = self.ai(
-            self.subtract_matrices(self.add_matrices(self.negate_matrix(A_blocks[0][0]), A_blocks[3][0]),
+        self.h[40] = self.__ai(
+            self.calculator.subtract(self.calculator.add(self.calculator.negate(A_blocks[0][0]), A_blocks[3][0]),
                                    A_blocks[3][4]),
-            self.subtract_matrices(self.add_matrices(self.add_matrices(self.subtract_matrices(
-                self.add_matrices(self.add_matrices(B_blocks[0][2], B_blocks[2][0]), B_blocks[2][2]), B_blocks[2][3]),
+            self.calculator.subtract(self.calculator.add(self.calculator.add(self.calculator.subtract(
+                self.calculator.add(self.calculator.add(B_blocks[0][2], B_blocks[2][0]), B_blocks[2][2]), B_blocks[2][3]),
                                                                        B_blocks[4][0]), B_blocks[4][2]),
                                    B_blocks[4][3]))
 
-        self.h[41] = self.ai(
-            self.subtract_matrices(self.add_matrices(self.negate_matrix(A_blocks[1][0]), A_blocks[1][4]),
+        self.h[41] = self.__ai(
+            self.calculator.subtract(self.calculator.add(self.calculator.negate(A_blocks[1][0]), A_blocks[1][4]),
                                    A_blocks[2][4]),
-            self.subtract_matrices(self.add_matrices(self.add_matrices(self.add_matrices(
-                self.add_matrices(self.subtract_matrices(self.negate_matrix(B_blocks[0][0]), B_blocks[0][1]),
-                                  self.negate_matrix(B_blocks[0][4])),
+            self.calculator.subtract(self.calculator.add(self.calculator.add(self.calculator.add(
+                self.calculator.add(self.calculator.subtract(self.calculator.negate(B_blocks[0][0]), B_blocks[0][1]),
+                                  self.calculator.negate(B_blocks[0][4])),
                 B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][4]), B_blocks[4][1]))
 
-        self.h[42] = self.ai(A_blocks[1][3],
-                             self.add_matrices(B_blocks[3][0], B_blocks[3][1]))
+        self.h[42] = self.__ai(A_blocks[1][3],
+                             self.calculator.add(B_blocks[3][0], B_blocks[3][1]))
 
-        self.h[43] = self.ai(
-            self.add_matrices(self.add_matrices(A_blocks[1][2], A_blocks[2][1]), self.negate_matrix(A_blocks[2][2])),
-            self.subtract_matrices(B_blocks[1][1], B_blocks[2][0]))
+        self.h[43] = self.__ai(
+            self.calculator.add(self.calculator.add(A_blocks[1][2], A_blocks[2][1]), self.calculator.negate(A_blocks[2][2])),
+            self.calculator.subtract(B_blocks[1][1], B_blocks[2][0]))
 
-        self.h[44] = self.ai(
-            self.add_matrices(
-                self.add_matrices(self.negate_matrix(A_blocks[2][2]), A_blocks[2][3]),
-                self.negate_matrix(A_blocks[3][2])
+        self.h[44] = self.__ai(
+            self.calculator.add(
+                self.calculator.add(self.calculator.negate(A_blocks[2][2]), A_blocks[2][3]),
+                self.calculator.negate(A_blocks[3][2])
             ),
-            self.add_matrices(
-                self.add_matrices(
-                    self.add_matrices(B_blocks[2][4], B_blocks[3][0]),
+            self.calculator.add(
+                self.calculator.add(
+                    self.calculator.add(B_blocks[2][4], B_blocks[3][0]),
                     B_blocks[3][2]
                 ),
-                self.add_matrices(
-                    self.add_matrices(B_blocks[3][4], B_blocks[4][0]),
-                    self.add_matrices(B_blocks[4][2], B_blocks[4][4])
+                self.calculator.add(
+                    self.calculator.add(B_blocks[3][4], B_blocks[4][0]),
+                    self.calculator.add(B_blocks[4][2], B_blocks[4][4])
                 )
             )
         )
 
-        self.h[45] = self.ai(self.negate_matrix(A_blocks[2][4]),
-                             self.negate_matrix(self.add_matrices(B_blocks[4][0], B_blocks[4][4])))
+        self.h[45] = self.__ai(self.calculator.negate(A_blocks[2][4]),
+                             self.calculator.negate(self.calculator.add(B_blocks[4][0], B_blocks[4][4])))
 
-        self.h[46] = self.ai(self.add_matrices(
-            self.subtract_matrices(self.subtract_matrices(A_blocks[1][0], A_blocks[1][4]), A_blocks[2][0]),
+        self.h[46] = self.__ai(self.calculator.add(
+            self.calculator.subtract(self.calculator.subtract(A_blocks[1][0], A_blocks[1][4]), A_blocks[2][0]),
             A_blocks[2][4]),
-                             self.subtract_matrices(self.subtract_matrices(self.subtract_matrices(
-                                 self.add_matrices(self.add_matrices(B_blocks[0][0], B_blocks[0][1]), B_blocks[0][4]),
+                             self.calculator.subtract(self.calculator.subtract(self.calculator.subtract(
+                                 self.calculator.add(self.calculator.add(B_blocks[0][0], B_blocks[0][1]), B_blocks[0][4]),
                                  B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][4]))
 
-        self.h[47] = self.ai(self.add_matrices(self.negate_matrix(A_blocks[1][2]), A_blocks[2][2]),
-                             self.add_matrices(self.add_matrices(self.add_matrices(
-                                 self.add_matrices(self.add_matrices(B_blocks[1][1], B_blocks[2][1]), B_blocks[2][4]),
+        self.h[47] = self.__ai(self.calculator.add(self.calculator.negate(A_blocks[1][2]), A_blocks[2][2]),
+                             self.calculator.add(self.calculator.add(self.calculator.add(
+                                 self.calculator.add(self.calculator.add(B_blocks[1][1], B_blocks[2][1]), B_blocks[2][4]),
                                  B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][4]))
 
-        self.h[48] = self.ai(self.add_matrices(self.add_matrices(self.subtract_matrices(self.subtract_matrices(
-            self.add_matrices(
-                self.add_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[0][0]), A_blocks[0][2]),
+        self.h[48] = self.__ai(self.calculator.add(self.calculator.add(self.calculator.subtract(self.calculator.subtract(
+            self.calculator.add(
+                self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[0][0]), A_blocks[0][2]),
                                   A_blocks[0][3]),
                 A_blocks[0][4]), A_blocks[1][0]), A_blocks[1][2]), A_blocks[1][3]), A_blocks[1][4]),
-                             self.add_matrices(
-                                 self.subtract_matrices(self.negate_matrix(B_blocks[0][0]), B_blocks[0][1]),
+                             self.calculator.add(
+                                 self.calculator.subtract(self.calculator.negate(B_blocks[0][0]), B_blocks[0][1]),
                                  B_blocks[0][3]))
 
-        self.h[49] = self.ai(self.subtract_matrices(self.negate_matrix(A_blocks[0][3]), A_blocks[1][3]),
-                             self.add_matrices(self.subtract_matrices(self.add_matrices(
-                                 self.subtract_matrices(self.subtract_matrices(B_blocks[1][1], B_blocks[2][0]),
+        self.h[49] = self.__ai(self.calculator.subtract(self.calculator.negate(A_blocks[0][3]), A_blocks[1][3]),
+                             self.calculator.add(self.calculator.subtract(self.calculator.add(
+                                 self.calculator.subtract(self.calculator.subtract(B_blocks[1][1], B_blocks[2][0]),
                                                         B_blocks[2][1]),
                                  B_blocks[2][3]), B_blocks[3][1]), B_blocks[3][3]))
 
-        self.h[50] = self.ai(A_blocks[1][1],
-                             self.add_matrices(self.add_matrices(B_blocks[1][0], B_blocks[1][1]),
-                                               self.negate_matrix(B_blocks[4][0])))
+        self.h[50] = self.__ai(A_blocks[1][1],
+                             self.calculator.add(self.calculator.add(B_blocks[1][0], B_blocks[1][1]),
+                                               self.calculator.negate(B_blocks[4][0])))
 
-        self.h[51] = self.ai(A_blocks[3][1],
-                             self.add_matrices(self.add_matrices(B_blocks[0][0], B_blocks[1][0]), B_blocks[1][2]))
+        self.h[51] = self.__ai(A_blocks[3][1],
+                             self.calculator.add(self.calculator.add(B_blocks[0][0], B_blocks[1][0]), B_blocks[1][2]))
 
-        self.h[52] = self.ai(
-            self.negate_matrix(A_blocks[0][1]),
-            self.add_matrices(
-                self.add_matrices(self.negate_matrix(B_blocks[1][0]), B_blocks[1][3]),
+        self.h[52] = self.__ai(
+            self.calculator.negate(A_blocks[0][1]),
+            self.calculator.add(
+                self.calculator.add(self.calculator.negate(B_blocks[1][0]), B_blocks[1][3]),
                 B_blocks[3][0]
             )
         )
 
-        self.h[53] = self.ai(self.subtract_matrices(self.subtract_matrices(self.add_matrices(self.subtract_matrices(
-            self.add_matrices(self.subtract_matrices(self.subtract_matrices(
-                self.subtract_matrices(self.add_matrices(A_blocks[0][1], A_blocks[0][3]), A_blocks[1][1]),
+        self.h[53] = self.__ai(self.calculator.subtract(self.calculator.subtract(self.calculator.add(self.calculator.subtract(
+            self.calculator.add(self.calculator.subtract(self.calculator.subtract(
+                self.calculator.subtract(self.calculator.add(A_blocks[0][1], A_blocks[0][3]), A_blocks[1][1]),
                 A_blocks[1][4]),
                                                      A_blocks[2][1]), A_blocks[2][2]), A_blocks[3][1]), A_blocks[3][2]),
                                                                            A_blocks[3][3]), A_blocks[3][4]),
                              B_blocks[1][2])
 
-        self.h[54] = self.ai(
-            self.subtract_matrices(A_blocks[0][3], A_blocks[3][3]),
-            self.subtract_matrices(self.add_matrices(
-                self.subtract_matrices(
-                    self.add_matrices(
-                        self.add_matrices(self.negate_matrix(B_blocks[1][2]), B_blocks[2][0]), B_blocks[2][2]),
+        self.h[54] = self.__ai(
+            self.calculator.subtract(A_blocks[0][3], A_blocks[3][3]),
+            self.calculator.subtract(self.calculator.add(
+                self.calculator.subtract(
+                    self.calculator.add(
+                        self.calculator.add(self.calculator.negate(B_blocks[1][2]), B_blocks[2][0]), B_blocks[2][2]),
                     B_blocks[2][3]), B_blocks[3][2]), B_blocks[3][3]))
 
-        self.h[55] = self.ai(self.add_matrices(
-            self.subtract_matrices(self.subtract_matrices(A_blocks[0][0], A_blocks[0][4]), A_blocks[3][0]),
+        self.h[55] = self.__ai(self.calculator.add(
+            self.calculator.subtract(self.calculator.subtract(A_blocks[0][0], A_blocks[0][4]), A_blocks[3][0]),
             A_blocks[3][4]),
-                             self.add_matrices(self.subtract_matrices(self.add_matrices(B_blocks[2][0], B_blocks[2][2]),
+                             self.calculator.add(self.calculator.subtract(self.calculator.add(B_blocks[2][0], B_blocks[2][2]),
                                                                       B_blocks[2][3]),
-                                               self.subtract_matrices(self.add_matrices(B_blocks[4][0], B_blocks[4][2]),
+                                               self.calculator.subtract(self.calculator.add(B_blocks[4][0], B_blocks[4][2]),
                                                                       B_blocks[4][3])))
 
-        self.h[56] = self.ai(self.subtract_matrices(self.negate_matrix(A_blocks[2][0]), A_blocks[3][0]),
-                             self.subtract_matrices(self.subtract_matrices(self.subtract_matrices(
-                                 self.subtract_matrices(
-                                     self.subtract_matrices(self.negate_matrix(B_blocks[0][2]), B_blocks[0][4]),
+        self.h[56] = self.__ai(self.calculator.subtract(self.calculator.negate(A_blocks[2][0]), A_blocks[3][0]),
+                             self.calculator.subtract(self.calculator.subtract(self.calculator.subtract(
+                                 self.calculator.subtract(
+                                     self.calculator.subtract(self.calculator.negate(B_blocks[0][2]), B_blocks[0][4]),
                                      B_blocks[1][4]), B_blocks[4][0]), B_blocks[4][2]), B_blocks[4][4]))
 
-        self.h[57] = self.ai(self.subtract_matrices(
-            self.subtract_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[0][3]), A_blocks[0][4]),
+        self.h[57] = self.__ai(self.calculator.subtract(
+            self.calculator.subtract(self.calculator.subtract(self.calculator.negate(A_blocks[0][3]), A_blocks[0][4]),
                                    A_blocks[2][3]), A_blocks[2][4]),
-                             self.subtract_matrices(
-                                 self.add_matrices(self.negate_matrix(B_blocks[4][0]), B_blocks[4][3]), B_blocks[4][4]))
+                             self.calculator.subtract(
+                                 self.calculator.add(self.calculator.negate(B_blocks[4][0]), B_blocks[4][3]), B_blocks[4][4]))
 
-        self.h[58] = self.ai(self.add_matrices(
-            self.subtract_matrices(self.add_matrices(self.negate_matrix(A_blocks[2][2]), A_blocks[2][3]),
+        self.h[58] = self.__ai(self.calculator.add(
+            self.calculator.subtract(self.calculator.add(self.calculator.negate(A_blocks[2][2]), A_blocks[2][3]),
                                    A_blocks[3][2]), A_blocks[3][3]),
-                             self.add_matrices(self.add_matrices(self.add_matrices(
-                                 self.add_matrices(self.add_matrices(B_blocks[3][0], B_blocks[3][2]), B_blocks[3][4]),
+                             self.calculator.add(self.calculator.add(self.calculator.add(
+                                 self.calculator.add(self.calculator.add(B_blocks[3][0], B_blocks[3][2]), B_blocks[3][4]),
                                  B_blocks[4][0]), B_blocks[4][2]), B_blocks[4][4]))
 
-        self.h[59] = self.ai(self.add_matrices(A_blocks[1][4], A_blocks[3][4]),
-                             self.subtract_matrices(self.subtract_matrices(self.subtract_matrices(
-                                 self.subtract_matrices(self.subtract_matrices(B_blocks[1][2], B_blocks[2][0]),
+        self.h[59] = self.__ai(self.calculator.add(A_blocks[1][4], A_blocks[3][4]),
+                             self.calculator.subtract(self.calculator.subtract(self.calculator.subtract(
+                                 self.calculator.subtract(self.calculator.subtract(B_blocks[1][2], B_blocks[2][0]),
                                                         B_blocks[2][1]), B_blocks[2][2]), B_blocks[4][1]),
                                                     B_blocks[4][2]))
 
-        self.h[60] = self.ai(
-            self.add_matrices(A_blocks[0][3], A_blocks[2][3]),
-            self.subtract_matrices(
-                self.add_matrices(
-                    self.subtract_matrices(
-                        self.add_matrices(
-                            self.subtract_matrices(
-                                self.subtract_matrices(
-                                    self.add_matrices(
-                                        self.subtract_matrices(B_blocks[0][0], B_blocks[0][3]),
+        self.h[60] = self.__ai(
+            self.calculator.add(A_blocks[0][3], A_blocks[2][3]),
+            self.calculator.subtract(
+                self.calculator.add(
+                    self.calculator.subtract(
+                        self.calculator.add(
+                            self.calculator.subtract(
+                                self.calculator.subtract(
+                                    self.calculator.add(
+                                        self.calculator.subtract(B_blocks[0][0], B_blocks[0][3]),
                                         B_blocks[0][4]
                                     ), B_blocks[1][4]),
                                 B_blocks[3][3]), B_blocks[3][4]),
                         B_blocks[4][0]), B_blocks[4][3]), B_blocks[4][0])
         )
 
-        self.h[61] = self.ai(self.add_matrices(A_blocks[1][0], A_blocks[3][0]),
-                             self.subtract_matrices(self.subtract_matrices(self.subtract_matrices(
-                                 self.add_matrices(self.add_matrices(B_blocks[0][1], B_blocks[0][2]), B_blocks[1][1]),
+        self.h[61] = self.__ai(self.calculator.add(A_blocks[1][0], A_blocks[3][0]),
+                             self.calculator.subtract(self.calculator.subtract(self.calculator.subtract(
+                                 self.calculator.add(self.calculator.add(B_blocks[0][1], B_blocks[0][2]), B_blocks[1][1]),
                                  B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][2]))
 
-        self.h[62] = self.ai(
-            self.subtract_matrices(self.negate_matrix(A_blocks[2][2]), A_blocks[3][2]),
-            self.subtract_matrices(
-                self.subtract_matrices(
-                    self.subtract_matrices(
-                        self.subtract_matrices(
-                            self.subtract_matrices(self.negate_matrix(B_blocks[1][2]), B_blocks[2][2]),
+        self.h[62] = self.__ai(
+            self.calculator.subtract(self.calculator.negate(A_blocks[2][2]), A_blocks[3][2]),
+            self.calculator.subtract(
+                self.calculator.subtract(
+                    self.calculator.subtract(
+                        self.calculator.subtract(
+                            self.calculator.subtract(self.calculator.negate(B_blocks[1][2]), B_blocks[2][2]),
                             B_blocks[2][4]), B_blocks[3][0]), B_blocks[3][2]), B_blocks[3][4]))
 
-        self.h[63] = self.ai(
-            self.subtract_matrices(
-                self.subtract_matrices(
-                    self.add_matrices(
-                        self.subtract_matrices(
-                            self.subtract_matrices(A_blocks[0][0], A_blocks[0][2]),
+        self.h[63] = self.__ai(
+            self.calculator.subtract(
+                self.calculator.subtract(
+                    self.calculator.add(
+                        self.calculator.subtract(
+                            self.calculator.subtract(A_blocks[0][0], A_blocks[0][2]),
                             A_blocks[0][3]
                         ), A_blocks[2][0]), A_blocks[2][2]), A_blocks[2][3]
 
             ),
-            self.add_matrices(
-                self.subtract_matrices(B_blocks[0][0], B_blocks[0][3]),
+            self.calculator.add(
+                self.calculator.subtract(B_blocks[0][0], B_blocks[0][3]),
                 B_blocks[0][4]
             )
         )
 
-        self.h[64] = self.ai(
-            self.add_matrices(self.negate_matrix(A_blocks[0][0]), A_blocks[3][0]),
-            self.add_matrices(
-                self.subtract_matrices(
-                    self.subtract_matrices(
-                        self.add_matrices(
-                            self.add_matrices(self.negate_matrix(B_blocks[0][2]), B_blocks[0][3]),
+        self.h[64] = self.__ai(
+            self.calculator.add(self.calculator.negate(A_blocks[0][0]), A_blocks[3][0]),
+            self.calculator.add(
+                self.calculator.subtract(
+                    self.calculator.subtract(
+                        self.calculator.add(
+                            self.calculator.add(self.calculator.negate(B_blocks[0][2]), B_blocks[0][3]),
                             B_blocks[1][3]), B_blocks[4][0]), B_blocks[4][2]), B_blocks[4][3])
         )
 
-        self.h[65] = self.ai(
-            self.add_matrices(
-                self.subtract_matrices(
-                    self.add_matrices(
-                        self.subtract_matrices(
-                            self.subtract_matrices(
-                                self.subtract_matrices(
-                                    self.subtract_matrices(
-                                        self.add_matrices(
-                                            self.subtract_matrices(A_blocks[0][0], A_blocks[0][1]),
+        self.h[65] = self.__ai(
+            self.calculator.add(
+                self.calculator.subtract(
+                    self.calculator.add(
+                        self.calculator.subtract(
+                            self.calculator.subtract(
+                                self.calculator.subtract(
+                                    self.calculator.subtract(
+                                        self.calculator.add(
+                                            self.calculator.subtract(A_blocks[0][0], A_blocks[0][1]),
                                             A_blocks[0][2]
                                         ),
                                         A_blocks[0][4]
@@ -477,123 +466,123 @@ class AIAlgorithm(BaseAlgorithm):
             B_blocks[1][3]
         )
 
-        self.h[66] = self.ai(
-            self.subtract_matrices(A_blocks[1][4], A_blocks[2][4]),
-            self.add_matrices(
-                self.add_matrices(self.subtract_matrices(
-                    self.subtract_matrices(
-                        self.subtract_matrices(
-                            self.subtract_matrices(
-                                self.add_matrices(
-                                    self.add_matrices(B_blocks[0][0], B_blocks[0][1]),
+        self.h[66] = self.__ai(
+            self.calculator.subtract(A_blocks[1][4], A_blocks[2][4]),
+            self.calculator.add(
+                self.calculator.add(self.calculator.subtract(
+                    self.calculator.subtract(
+                        self.calculator.subtract(
+                            self.calculator.subtract(
+                                self.calculator.add(
+                                    self.calculator.add(B_blocks[0][0], B_blocks[0][1]),
                                     B_blocks[0][4]), B_blocks[1][4]), B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][4]),
                     B_blocks[4][1]), B_blocks[4][4])
 
         )
 
-        self.h[67] = self.ai(
-            self.add_matrices(
-                self.add_matrices(
-                    self.subtract_matrices(
-                        self.subtract_matrices(
-                            self.subtract_matrices(
-                                self.subtract_matrices(
-                                    self.add_matrices(A_blocks[0][0], A_blocks[0][2]), A_blocks[0][3]), A_blocks[0][4]),
+        self.h[67] = self.__ai(
+            self.calculator.add(
+                self.calculator.add(
+                    self.calculator.subtract(
+                        self.calculator.subtract(
+                            self.calculator.subtract(
+                                self.calculator.subtract(
+                                    self.calculator.add(A_blocks[0][0], A_blocks[0][2]), A_blocks[0][3]), A_blocks[0][4]),
                             A_blocks[3][0]), A_blocks[3][2]), A_blocks[3][3]), A_blocks[3][4]),
 
-            self.add_matrices(self.subtract_matrices(self.negate_matrix(B_blocks[2][0]), B_blocks[2][2]),
+            self.calculator.add(self.calculator.subtract(self.calculator.negate(B_blocks[2][0]), B_blocks[2][2]),
                               B_blocks[2][3]
                               )
         )
 
-        self.h[68] = self.ai(
-            self.add_matrices(
-                self.subtract_matrices(
-                    self.add_matrices(self.negate_matrix(A_blocks[0][2]), A_blocks[0][3]),
+        self.h[68] = self.__ai(
+            self.calculator.add(
+                self.calculator.subtract(
+                    self.calculator.add(self.calculator.negate(A_blocks[0][2]), A_blocks[0][3]),
                     A_blocks[1][2]), A_blocks[1][3]),
 
-            self.add_matrices(
-                self.subtract_matrices(
-                    self.add_matrices(
-                        self.subtract_matrices(
-                            self.subtract_matrices(self.negate_matrix(B_blocks[1][3]), B_blocks[2][0]),
+            self.calculator.add(
+                self.calculator.subtract(
+                    self.calculator.add(
+                        self.calculator.subtract(
+                            self.calculator.subtract(self.calculator.negate(B_blocks[1][3]), B_blocks[2][0]),
                             B_blocks[2][1]), B_blocks[2][3]), B_blocks[4][1]), B_blocks[4][3]))
 
-        self.h[69] = self.ai(
-            self.subtract_matrices(
-                self.add_matrices(
-                    self.add_matrices(A_blocks[1][2], self.negate_matrix(A_blocks[1][4])),
+        self.h[69] = self.__ai(
+            self.calculator.subtract(
+                self.calculator.add(
+                    self.calculator.add(A_blocks[1][2], self.calculator.negate(A_blocks[1][4])),
                     A_blocks[3][2]
                 ),
                 A_blocks[3][4]
             ),
-            self.negate_matrix(
-                self.add_matrices(
-                    self.add_matrices(B_blocks[2][0], B_blocks[2][1]),
+            self.calculator.negate(
+                self.calculator.add(
+                    self.calculator.add(B_blocks[2][0], B_blocks[2][1]),
                     B_blocks[2][2]
                 )
             )
         )
 
-        self.h[70] = self.ai(
-            self.add_matrices(
-                self.subtract_matrices(
-                    self.add_matrices(
-                        self.subtract_matrices(
-                            self.add_matrices(
-                                self.subtract_matrices(
-                                    self.add_matrices(self.negate_matrix(A_blocks[2][0]), A_blocks[2][2]),
+        self.h[70] = self.__ai(
+            self.calculator.add(
+                self.calculator.subtract(
+                    self.calculator.add(
+                        self.calculator.subtract(
+                            self.calculator.add(
+                                self.calculator.subtract(
+                                    self.calculator.add(self.calculator.negate(A_blocks[2][0]), A_blocks[2][2]),
                                     A_blocks[2][3]
                                 ),
                                 A_blocks[2][4]
                             ), A_blocks[3][0]), A_blocks[3][2]), A_blocks[3][3]), A_blocks[3][4]),
 
-            self.negate_matrix(
-                self.add_matrices(
-                    self.add_matrices(B_blocks[4][0], B_blocks[4][2]),
+            self.calculator.negate(
+                self.calculator.add(
+                    self.calculator.add(B_blocks[4][0], B_blocks[4][2]),
                     B_blocks[4][4]
                 )
             )
         )
 
-        self.h[71] = self.ai(self.subtract_matrices(
-            self.subtract_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[1][0]), A_blocks[1][3]),
+        self.h[71] = self.__ai(self.calculator.subtract(
+            self.calculator.subtract(self.calculator.subtract(self.calculator.negate(A_blocks[1][0]), A_blocks[1][3]),
                                    A_blocks[3][0]), A_blocks[3][3]),
-                             self.add_matrices(self.add_matrices(B_blocks[3][0], B_blocks[3][1]), B_blocks[3][2]))
+                             self.calculator.add(self.calculator.add(B_blocks[3][0], B_blocks[3][1]), B_blocks[3][2]))
 
-        self.h[72] = self.ai(
-            self.subtract_matrices(
-                self.subtract_matrices(
-                    self.add_matrices(
-                        self.subtract_matrices(
-                            self.subtract_matrices(
+        self.h[72] = self.__ai(
+            self.calculator.subtract(
+                self.calculator.subtract(
+                    self.calculator.add(
+                        self.calculator.subtract(
+                            self.calculator.subtract(
                                 A_blocks[0][2], A_blocks[0][3]), A_blocks[0][4]), A_blocks[1][2]), A_blocks[1][3]),
                 A_blocks[1][4]),
-            self.subtract_matrices(
-                self.add_matrices(
-                    self.add_matrices(
-                        self.subtract_matrices(
-                            self.add_matrices(B_blocks[0][0], B_blocks[0][1]), B_blocks[0][3]), B_blocks[1][3]),
+            self.calculator.subtract(
+                self.calculator.add(
+                    self.calculator.add(
+                        self.calculator.subtract(
+                            self.calculator.add(B_blocks[0][0], B_blocks[0][1]), B_blocks[0][3]), B_blocks[1][3]),
                     B_blocks[4][1]), B_blocks[4][3])
 
         )
 
-        self.h[73] = self.ai(self.subtract_matrices(self.add_matrices(self.subtract_matrices(
-            self.add_matrices(self.subtract_matrices(A_blocks[1][0], A_blocks[1][2]), A_blocks[1][3]), A_blocks[2][0]),
+        self.h[73] = self.__ai(self.calculator.subtract(self.calculator.add(self.calculator.subtract(
+            self.calculator.add(self.calculator.subtract(A_blocks[1][0], A_blocks[1][2]), A_blocks[1][3]), A_blocks[2][0]),
                                                                       A_blocks[2][2]), A_blocks[2][3]),
 
-                             self.add_matrices(self.add_matrices(B_blocks[3][0], B_blocks[3][1]), B_blocks[3][4]))
+                             self.calculator.add(self.calculator.add(B_blocks[3][0], B_blocks[3][1]), B_blocks[3][4]))
 
-        self.h[74] = self.ai(
-            self.add_matrices(
-                self.subtract_matrices(
-                    self.add_matrices(
-                        self.add_matrices(
-                            self.add_matrices(
-                                self.subtract_matrices(
-                                    self.subtract_matrices(
-                                        self.subtract_matrices(
-                                            self.add_matrices(A_blocks[0][1], A_blocks[0][3]),
+        self.h[74] = self.__ai(
+            self.calculator.add(
+                self.calculator.subtract(
+                    self.calculator.add(
+                        self.calculator.add(
+                            self.calculator.add(
+                                self.calculator.subtract(
+                                    self.calculator.subtract(
+                                        self.calculator.subtract(
+                                            self.calculator.add(A_blocks[0][1], A_blocks[0][3]),
                                             A_blocks[1][1]), A_blocks[1][4]), A_blocks[2][0]), A_blocks[2][1]),
                             A_blocks[2][3]), A_blocks[2][4]), A_blocks[3][0]),
                 A_blocks[3][1]),
@@ -601,9 +590,9 @@ class AIAlgorithm(BaseAlgorithm):
             B_blocks[1][4]
         )
 
-        self.h[75] = self.ai(self.add_matrices(A_blocks[0][2], A_blocks[2][2]),
-                             self.subtract_matrices(self.add_matrices(self.add_matrices(self.subtract_matrices(
-                                 self.add_matrices(self.negate_matrix(B_blocks[0][0]), B_blocks[0][3]), B_blocks[0][4]),
+        self.h[75] = self.__ai(self.calculator.add(A_blocks[0][2], A_blocks[2][2]),
+                             self.calculator.subtract(self.calculator.add(self.calculator.add(self.calculator.subtract(
+                                 self.calculator.add(self.calculator.negate(B_blocks[0][0]), B_blocks[0][3]), B_blocks[0][4]),
                                                                                         B_blocks[1][3]),
                                                                       B_blocks[2][3]), B_blocks[2][4]))
 
@@ -654,26 +643,28 @@ class AIAlgorithm(BaseAlgorithm):
         return self.fill_matrix(C, m, k, m // 4, k // 5)
 
     def run(self, A, B):
-        self.matrix_3 = self.ai(A, B)
+        self.matrix_3 = self.__ai(A, B)
+
+    def __local_test(self):
+        A1 = [
+            [1, 2, 3, 4, 5],
+            [6, 7, 8, 9, 10],
+            [11, 12, 13, 14, 15],
+            [16, 17, 18, 19, 20]
+        ]
+
+        B1 = [
+            [1, 1, 1, 0, 1],
+            [0, 1, 0, 1, 0],
+            [1, 0, 1, 1, 1],
+            [0, 1, 1, 0, 0],
+            [1, 0, 1, 1, 1]
+        ]
+        self.run(A1, B1)
+        result = self.matrix_3
+        result2 = self.multiply_matrices(A1, B1)
+        print(result)
+        print(result2)
+        assert result2 == result, "Error"
 
 
-A1 = [
-    [1, 2, 3, 4, 5],
-    [6, 7, 8, 9, 10],
-    [11, 12, 13, 14, 15],
-    [16, 17, 18, 19, 20]
-]
-
-B1 = [
-    [1, 1, 1, 0, 1],
-    [0, 1, 0, 1, 0],
-    [1, 0, 1, 1, 1],
-    [0, 1, 1, 0, 0],
-    [1, 0, 1, 1, 1]
-]
-# ai_inst = AIAlgorithm()
-# result = ai_inst.ai(A1, B1)
-# result2 = ai_inst.multiply_matrices(A1, B1)
-# print(result)
-# print(result2)
-# assert result2 == result, "Error"
