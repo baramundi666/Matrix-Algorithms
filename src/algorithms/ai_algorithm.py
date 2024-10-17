@@ -43,7 +43,6 @@ class AIALGORITHM:
                     block.append(block_row)
                 row_blocks.append(block)
             blocks.append(row_blocks)
-
         return blocks
 
     # Wypełnianie macierzy wynikowej
@@ -78,8 +77,8 @@ class AIALGORITHM:
                             self.negate_matrix(self.add_matrices(B_blocks[1][4], B_blocks[4][0])))
 
         self.h[2] = self.ai(
-            self.subtract_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[2][0]), A_blocks[3][0]),
-                                   A_blocks[3][1]), self.subtract_matrices(B_blocks[0][0], B_blocks[1][4]))
+            self.add_matrices(self.subtract_matrices(self.negate_matrix(A_blocks[2][0]), A_blocks[3][0]),
+                                   A_blocks[3][1]), self.add_matrices(self.negate_matrix(B_blocks[0][0]), B_blocks[1][4]))
 
         self.h[3] = self.ai(self.add_matrices(self.add_matrices(A_blocks[0][1], A_blocks[0][3]), A_blocks[2][3]),
                             self.negate_matrix(self.add_matrices(B_blocks[1][4], B_blocks[3][0])))
@@ -303,18 +302,6 @@ class AIALGORITHM:
             )
         )
 
-        self.h[44] = self.ai(
-            self.add_matrices(
-                self.add_matrices(self.negate_matrix(A_blocks[2][2]), A_blocks[2][3]),
-                self.negate_matrix(A_blocks[3][2])
-            ),
-            self.add_matrices(
-                self.add_matrices(
-                    self.add_matrices(self.add_matrices(
-                        self.add_matrices(self.add_matrices(B_blocks[2][4], B_blocks[3][0]), B_blocks[3][2]),
-                        B_blocks[3][4]), B_blocks[4][0]), B_blocks[4][2]), B_blocks[4][4])
-        )
-
         self.h[45] = self.ai(self.negate_matrix(A_blocks[2][4]),
                              self.negate_matrix(self.add_matrices(B_blocks[4][0], B_blocks[4][4])))
 
@@ -325,7 +312,7 @@ class AIALGORITHM:
                                  self.add_matrices(self.add_matrices(B_blocks[0][0], B_blocks[0][1]), B_blocks[0][4]),
                                  B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][4]))
 
-        self.h[47] = self.ai(self.subtract_matrices(self.negate_matrix(A_blocks[1][2]), A_blocks[2][2]),
+        self.h[47] = self.ai(self.add_matrices(self.negate_matrix(A_blocks[1][2]), A_blocks[2][2]),
                              self.add_matrices(self.add_matrices(self.add_matrices(
                                  self.add_matrices(self.add_matrices(B_blocks[1][1], B_blocks[2][1]), B_blocks[2][4]),
                                  B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][4]))
@@ -681,3 +668,4 @@ result = ai_inst.ai(A1, B1)
 result2 = ai_inst.multiply_matrices(A1, B1)
 print(result)
 print(result2)
+assert result2 == result, "Error"
