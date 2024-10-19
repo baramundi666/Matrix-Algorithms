@@ -1,5 +1,5 @@
-from src.algorithms.example_algorithm import ExampleAlgorithm
-from tests.base_algorithm_test import BaseAlgorithmTest
+from algorithms.example_algorithm import ExampleAlgorithm
+from base_algorithm_test import BaseAlgorithmTest
 
 
 class TestExampleAlgorithm(BaseAlgorithmTest):

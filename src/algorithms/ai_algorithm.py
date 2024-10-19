@@ -1,646 +1,271 @@
-from src.base_algorithm import BaseAlgorithm
+from base_algorithm import BaseAlgorithm
+import copy
+import numpy as np
+import math
+
+
+class Matrix:
+    def __init__(self, data, calculator, multiplication):
+        self.data = copy.deepcopy(data)
+        self.calculator = calculator
+        self.multiplication = multiplication
+        self.shape = (len(data), len(data[0]))
+
+    def __getitem__(self, idx):
+        i, j = idx
+        i -= 1
+        j -= 1
+        return self.data[i][j]
+
+    def __setitem__(self, idx, item):
+        i, j = idx
+        i -= 1
+        j -= 1
+        self.data[i][j] = item
+
+    def __neg__(self):
+        return Matrix(self.calculator.negate(self.data), self.calculator, multiplication=self.multiplication)
+
+    def __add__(self, other):
+        return Matrix(self.calculator.add(self.data, other.data), self.calculator, multiplication=self.multiplication)
+
+    def __sub__(self, other):
+        return Matrix(self.calculator.subtract(self.data, other.data), self.calculator, multiplication=self.multiplication)
+
+    def __matmul__(self, other):
+        assert self.shape[1] == other.shape[0], "Wrong shape for multiplication"
+        return self.multiplication(self, other)
+
+    def __mul__(self, other):
+        return self.__matmul__(other)
+
+    @classmethod
+    def empty(cls, n: int, m: int, calculator, multiplication):
+        data = [[None for _ in range(m)] for _ in range(n)]
+        return cls(data, calculator, multiplication=multiplication)
+
+    @classmethod
+    def in_place(cls, data, calculator, multiplication):
+        retval = Matrix([[]], calculator, multiplication=multiplication)
+        retval.data = data
+        retval.shape = (len(data), len(data[0]))
+        return retval
+
+
 
 
 class AIAlgorithm(BaseAlgorithm):
     def __init__(self):
         super().__init__()
-        self.matrix_3 = None
-        self.h = [0 for _ in range(76)]
 
+    @staticmethod
+    def ai_compute_h(a, b):
+        h = [None] * 77
+        h[1] = (a[3, 2]) * (-b[2, 1] - b[2, 5] - b[3, 1])
+        h[2] = (a[2, 2] + a[2, 5] - a[3, 5]) * (-b[2, 5] - b[5, 1])
+        h[3] = (-a[3, 1] - a[4, 1] + a[4, 2]) * (-b[1, 1] + b[2, 5])
+        h[4] = (a[1, 2] + a[1, 4] + a[3, 4]) * (-b[2, 5] - b[4, 1])
+        h[5] = (a[1, 5] + a[2, 2] + a[2, 5]) * (-b[2, 4] + b[5, 1])
+        h[6] = (-a[2, 2] - a[2, 5] - a[4, 5]) * (b[2, 3] + b[5, 1])
+        h[7] = (-a[1, 1] + a[4, 1] - a[4, 2]) * (b[1, 1] + b[2, 4])
+        h[8] = (a[3, 2] - a[3, 3] - a[4, 3]) * (-b[2, 3] + b[3, 1])
+        h[9] = (-a[1, 2] - a[1, 4] + a[4, 4]) * (b[2, 3] + b[4, 1])
+        h[10] = (a[2, 2] + a[2, 5]) * (b[5, 1])
+        h[11] = (-a[2, 1] - a[4, 1] + a[4, 2]) * (-b[1, 1] + b[2, 2])
+        h[12] = (a[4, 1] - a[4, 2]) * (b[1, 1])
+        h[13] = (a[1, 2] + a[1, 4] + a[2, 4]) * (b[2, 2] + b[4, 1])
+        h[14] = (a[1, 3] - a[3, 2] + a[3, 3]) * (b[2, 4] + b[3, 1])
+        h[15] = (-a[1, 2] - a[1, 4]) * (b[4, 1])
+        h[16] = (-a[3, 2] + a[3, 3]) * (b[3, 1])
+        h[17] = (a[1, 2] + a[1, 4] - a[2, 1] + a[2, 2] - a[2, 3] + a[2, 4] - a[3, 2] + a[3, 3] - a[4, 1] + a[4, 2]) * (
+            b[2, 2])
+        h[18] = (a[2, 1]) * (b[1, 1] + b[1, 2] + b[5, 2])
+        h[19] = (-a[2, 3]) * (b[3, 1] + b[3, 2] + b[5, 2])
+        h[20] = (-a[1, 5] + a[2, 1] + a[2, 3] - a[2, 5]) * (-b[1, 1] - b[1, 2] + b[1, 4] - b[5, 2])
+        h[21] = (a[2, 1] + a[2, 3] - a[2, 5]) * (b[5, 2])
+        h[22] = (a[1, 3] - a[1, 4] - a[2, 4]) * (b[1, 1] + b[1, 2] - b[1, 4] - b[3, 1] - b[3, 2] + b[3, 4] + b[4, 4])
+        h[23] = (a[1, 3]) * (-b[3, 1] + b[3, 4] + b[4, 4])
+        h[24] = (a[1, 5]) * (-b[4, 4] - b[5, 1] + b[5, 4])
+        h[25] = (-a[1, 1]) * (b[1, 1] - b[1, 4])
+        h[26] = (-a[1, 3] + a[1, 4] + a[1, 5]) * (b[4, 4])
+        h[27] = (a[1, 3] - a[3, 1] + a[3, 3]) * (b[1, 1] - b[1, 4] + b[1, 5] + b[3, 5])
+        h[28] = (-a[3, 4]) * (-b[3, 5] - b[4, 1] - b[4, 5])
+        h[29] = (a[3, 1]) * (b[1, 1] + b[1, 5] + b[3, 5])
+        h[30] = (a[3, 1] - a[3, 3] + a[3, 4]) * (b[3, 5])
+        h[31] = (-a[1, 4] - a[1, 5] - a[3, 4]) * (-b[4, 4] - b[5, 1] + b[5, 4] - b[5, 5])
+        h[32] = (a[2, 1] + a[4, 1] + a[4, 4]) * (b[1, 3] - b[4, 1] - b[4, 2] - b[4, 3])
+        h[33] = (a[4, 3]) * (-b[3, 1] - b[3, 3])
+        h[34] = (a[4, 4]) * (-b[1, 3] + b[4, 1] + b[4, 3])
+        h[35] = (-a[4, 5]) * (b[1, 3] + b[5, 1] + b[5, 3])
+        h[36] = (a[2, 3] - a[2, 5] - a[4, 5]) * (b[3, 1] + b[3, 2] + b[3, 3] + b[5, 2])
+        h[37] = (-a[4, 1] - a[4, 4] + a[4, 5]) * (b[1, 3])
+        h[38] = (-a[2, 3] - a[3, 1] + a[3, 3] - a[3, 4]) * (b[3, 5] + b[4, 1] + b[4, 2] + b[4, 5])
+        h[39] = (-a[3, 1] - a[4, 1] - a[4, 4] + a[4, 5]) * (b[1, 3] + b[5, 1] + b[5, 3] + b[5, 5])
+        h[40] = (-a[1, 3] + a[1, 4] + a[1, 5] - a[4, 4]) * (-b[3, 1] - b[3, 3] + b[3, 4] + b[4, 4])
+        h[41] = (-a[1, 1] + a[4, 1] - a[4, 5]) * (b[1, 3] + b[3, 1] + b[3, 3] - b[3, 4] + b[5, 1] + b[5, 3] - b[5, 4])
+        h[42] = (-a[2, 1] + a[2, 5] - a[3, 5]) * (-b[1, 1] - b[1, 2] - b[1, 5] + b[4, 1] + b[4, 2] + b[4, 5] - b[5, 2])
+        h[43] = (a[2, 4]) * (b[4, 1] + b[4, 2])
+        h[44] = (a[2, 3] + a[3, 2] - a[3, 3]) * (b[2, 2] - b[3, 1])
+        h[45] = (-a[3, 3] + a[3, 4] - a[4, 3]) * (b[3, 5] + b[4, 1] + b[4, 3] + b[4, 5] + b[5, 1] + b[5, 3] + b[5, 5])
+        h[46] = (-a[3, 5]) * (-b[5, 1] - b[5, 5])
+        h[47] = (a[2, 1] - a[2, 5] - a[3, 1] + a[3, 5]) * (b[1, 1] + b[1, 2] + b[1, 5] - b[4, 1] - b[4, 2] - b[4, 5])
+        h[48] = (-a[2, 3] + a[3, 3]) * (b[2, 2] + b[3, 2] + b[3, 5] + b[4, 1] + b[4, 2] + b[4, 5])
+        h[49] = (-a[1, 1] - a[1, 3] + a[1, 4] + a[1, 5] - a[2, 1] - a[2, 3] + a[2, 4] + a[2, 5]) * (
+                -b[1, 1] - b[1, 2] + b[1, 4])
+        h[50] = (-a[1, 4] - a[2, 4]) * (b[2, 2] - b[3, 1] - b[3, 2] + b[3, 4] - b[4, 2] + b[4, 4])
+        h[51] = (a[2, 2]) * (b[2, 1] + b[2, 2] - b[5, 1])
+        h[52] = (a[4, 2]) * (b[1, 1] + b[2, 1] + b[2, 3])
+        h[53] = (-a[1, 2]) * (-b[2, 1] + b[2, 4] + b[4, 1])
+        h[54] = (a[1, 2] + a[1, 4] - a[2, 2] - a[2, 5] - a[3, 2] + a[3, 3] - a[4, 2] + a[4, 3] - a[4, 4] - a[4, 5]) * (
+            b[2, 3])
+        h[55] = (a[1, 4] - a[4, 4]) * (-b[2, 3] + b[3, 1] + b[3, 3] - b[3, 4] + b[4, 3] - b[4, 4])
+        h[56] = (a[1, 1] - a[1, 5] - a[4, 1] + a[4, 5]) * (b[3, 1] + b[3, 3] - b[3, 4] + b[5, 1] + b[5, 3] - b[5, 4])
+        h[57] = (-a[3, 1] - a[4, 1]) * (-b[1, 3] - b[1, 5] - b[2, 5] - b[5, 1] - b[5, 3] - b[5, 5])
+        h[58] = (-a[1, 4] - a[1, 5] - a[3, 4] - a[3, 5]) * (-b[5, 1] + b[5, 4] - b[5, 5])
+        h[59] = (-a[3, 3] + a[3, 4] - a[4, 3] + a[4, 4]) * (b[4, 1] + b[4, 3] + b[4, 5] + b[5, 1] + b[5, 3] + b[5, 5])
+        h[60] = (a[2, 5] + a[4, 5]) * (b[2, 3] - b[3, 1] - b[3, 2] - b[3, 3] - b[5, 2] - b[5, 3])
+        h[61] = (a[1, 4] + a[3, 4]) * (
+                b[1, 1] - b[1, 4] + b[1, 5] - b[2, 5] - b[4, 4] + b[4, 5] - b[5, 1] + b[5, 4] - b[5, 5])
+        h[62] = (a[2, 1] + a[4, 1]) * (b[1, 2] + b[1, 3] + b[2, 2] - b[4, 1] - b[4, 2] - b[4, 3])
+        h[63] = (-a[3, 3] - a[4, 3]) * (-b[2, 3] - b[3, 3] - b[3, 5] - b[4, 1] - b[4, 3] - b[4, 5])
+        h[64] = (a[1, 1] - a[1, 3] - a[1, 4] + a[3, 1] - a[3, 3] - a[3, 4]) * (b[1, 1] - b[1, 4] + b[1, 5])
+        h[65] = (-a[1, 1] + a[4, 1]) * (-b[1, 3] + b[1, 4] + b[2, 4] - b[5, 1] - b[5, 3] + b[5, 4])
+        h[66] = (a[1, 1] - a[1, 2] + a[1, 3] - a[1, 5] - a[2, 2] - a[2, 5] - a[3, 2] + a[3, 3] - a[4, 1] + a[4, 2]) * (
+            b[2, 4])
+        h[67] = (a[2, 5] - a[3, 5]) * (
+                b[1, 1] + b[1, 2] + b[1, 5] - b[2, 5] - b[4, 1] - b[4, 2] - b[4, 5] + b[5, 2] + b[5, 5])
+        h[68] = (a[1, 1] + a[1, 3] - a[1, 4] - a[1, 5] - a[4, 1] - a[4, 3] + a[4, 4] + a[4, 5]) * (
+                -b[3, 1] - b[3, 3] + b[3, 4])
+        h[69] = (-a[1, 3] + a[1, 4] - a[2, 3] + a[2, 4]) * (-b[2, 4] - b[3, 1] - b[3, 2] + b[3, 4] - b[5, 2] + b[5, 4])
+        h[70] = (a[2, 3] - a[2, 5] + a[4, 3] - a[4, 5]) * (-b[3, 1] - b[3, 2] - b[3, 3])
+        h[71] = (-a[3, 1] + a[3, 3] - a[3, 4] + a[3, 5] - a[4, 1] + a[4, 3] - a[4, 4] + a[4, 5]) * (
+                -b[5, 1] - b[5, 3] - b[5, 5])
+        h[72] = (-a[2, 1] - a[2, 4] - a[4, 1] - a[4, 4]) * (b[4, 1] + b[4, 2] + b[4, 3])
+        h[73] = (a[1, 3] - a[1, 4] - a[1, 5] + a[2, 3] - a[2, 4] - a[2, 5]) * (
+                b[1, 1] + b[1, 2] - b[1, 4] + b[2, 4] + b[5, 2] - b[5, 4])
+        h[74] = (a[2, 1] - a[2, 3] + a[2, 4] - a[3, 1] + a[3, 3] - a[3, 4]) * (b[4, 1] + b[4, 2] + b[4, 5])
+        h[75] = -(a[1, 2] + a[1, 4] - a[2, 2] - a[2, 5] - a[3, 1] + a[3, 2] + a[3, 4] + a[3, 5] - a[4, 1] + a[4, 2]) * (
+            b[2, 5])
+        h[76] = (a[1, 3] + a[3, 3]) * (-b[1, 1] + b[1, 4] - b[1, 5] + b[2, 4] + b[3, 4] - b[3, 5])
 
-    # Mnożenie dwóch macierzy
-    def multiply_matrices(self, A, B):
-        result = [[0 for _ in range(len(B[0]))] for _ in range(len(A))]
-        for i in range(len(A)):
-            for j in range(len(B[0])):
-                for k in range(len(B)):
-                    result[i][j] += A[i][k] * B[k][j]
-        return result
+        return h
 
+    def ai_compute_c(self, h, multiplication):
+        c = Matrix.empty(4, 5, self.calculator, multiplication=multiplication)
 
-    # Dzielenie macierzy na bloki
-    def divide_matrix(self, M, num_block_rows, num_block_cols):
-        rows = len(M)
-        cols = len(M[0])
-        block_height = rows // num_block_rows
-        block_width = cols // num_block_cols
+        c[1, 1] = -h[10] + h[12] + h[14] - h[15] - h[16] + h[53] + h[5] - h[66] - h[7]
+        c[2, 1] = h[10] + h[11] - h[12] + h[13] + h[15] + h[16] - h[17] - h[44] + h[51]
+        c[3, 1] = h[10] - h[12] + h[15] + h[16] - h[1] + h[2] + h[3] - h[4] + h[75]
+        c[4, 1] = -h[10] + h[12] - h[15] - h[16] + h[52] + h[54] - h[6] - h[8] + h[9]
+        c[1, 2] = h[13] + h[15] + h[20] + h[21] - h[22] + h[23] + h[25] - h[43] + h[49] + h[50]
+        c[2, 2] = -h[11] + h[12] - h[13] - h[15] - h[16] + h[17] + h[18] - h[19] - h[21] + h[43] + h[44]
+        c[3, 2] = -h[16] - h[19] - h[21] - h[28] - h[29] - h[38] + h[42] + h[44] - h[47] + h[48]
+        c[4, 2] = h[11] - h[12] - h[18] + h[21] - h[32] + h[33] - h[34] - h[36] + h[62] - h[70]
+        c[1, 3] = h[15] + h[23] + h[24] + h[34] - h[37] + h[40] - h[41] + h[55] - h[56] - h[9]
+        c[2, 3] = -h[10] + h[19] + h[32] + h[35] + h[36] + h[37] - h[43] - h[60] - h[6] - h[72]
+        c[3, 3] = -h[16] - h[28] + h[33] + h[37] - h[39] + h[45] - h[46] + h[63] - h[71] - h[8]
+        c[4, 3] = h[10] + h[15] + h[16] - h[33] + h[34] - h[35] - h[37] - h[54] + h[6] + h[8] - h[9]
+        c[1, 4] = -h[10] + h[12] + h[14] - h[16] + h[23] + h[24] + h[25] + h[26] + h[5] - h[66] - h[7]
+        c[2, 4] = h[10] + h[18] - h[19] + h[20] - h[22] - h[24] - h[26] - h[5] - h[69] + h[73]
+        c[3, 4] = -h[14] + h[16] - h[23] - h[26] + h[27] + h[29] + h[31] + h[46] - h[58] + h[76]
+        c[4, 4] = h[12] + h[25] + h[26] - h[33] - h[35] - h[40] + h[41] + h[65] - h[68] - h[7]
+        c[1, 5] = h[15] + h[24] + h[25] + h[27] - h[28] + h[30] + h[31] - h[4] + h[61] + h[64]
+        c[2, 5] = -h[10] - h[18] - h[2] - h[30] - h[38] + h[42] - h[43] + h[46] + h[67] + h[74]
+        c[3, 5] = -h[10] + h[12] - h[15] + h[28] + h[29] - h[2] - h[30] - h[3] + h[46] + h[4] - h[75]
+        c[4, 5] = -h[12] - h[29] + h[30] - h[34] + h[35] + h[39] + h[3] - h[45] + h[57] + h[59]
 
-        blocks = []
+        return c
 
-        for i in range(num_block_rows):
-            row_blocks = []
-            for j in range(num_block_cols):
-                block = []
-                for row in range(block_height * i, block_height * (i + 1)):
-                    block_row = []
-                    for col in range(block_width * j, block_width * (j + 1)):
-                        block_row.append(M[row][col])
-                    block.append(block_row)
-                row_blocks.append(block)
-            blocks.append(row_blocks)
-        return blocks
+    def ai_multiplication(self, a, b):
+        h = self.ai_compute_h(a, b)
+        return self.ai_compute_c(h, multiplication=a.multiplication)
 
-    # Wypełnianie macierzy wynikowej
-    def fill_matrix(self, C, m, k, height, width):
-        C_result = [[0] * k for _ in range(m)]
-        for i in range(4):
-            for j in range(5):
-                block = C[i][j]
-                for x in range(height):
-                    for y in range(width):
-                        C_result[i * height + x][j * width + y] = block
+    @staticmethod
+    def submatrix(a, yrange: tuple[int, int], xrange: tuple[int, int]):
+        data = [[a[i, j] for j in range(*xrange)] for i in range(*yrange)]
+        return Matrix.in_place(data, a.calculator, a.multiplication)
 
-        return C_result
+    @staticmethod
+    def _plant(dest, src, offset: tuple[int, int], src_shape: tuple[int, int]):
+        for i in range(src_shape[0]):
+            for j in range(src_shape[1]):
+                dest[i + offset[0]][j + offset[1]] = src[i][j]
+
+    @staticmethod
+    def expand(a):
+        cy = [0] + list(np.cumsum([a[i, 1].shape[0] for i in range(1, a.shape[0] + 1)]))
+        cx = [0] + list(np.cumsum([a[1, i].shape[1] for i in range(1, a.shape[1] + 1)]))
+        N = cy[-1]
+        M = cx[-1]
+        data = [[None] * M for _ in range(N)]
+
+        n, m = a.shape
+        for i in range(n):
+            for j in range(m):
+                offset = (cy[i], cx[j])
+                src = a[i + 1, j + 1]
+                AIAlgorithm._plant(data, src.data, offset, src.shape)
+
+        return Matrix.in_place(data, a.calculator, a.multiplication)
+    def block(self, a, shape: tuple[int, int]):
+        assert a.shape[0] >= shape[0] and a.shape[1] >= shape[1], "Matrix too small"
+
+        n, m = a.shape
+        y = n // shape[0]
+        x = m // shape[1]
+
+        retval = Matrix.empty(*shape, self.calculator, multiplication=a.multiplication)
+        for i in range(1, shape[0] + 1):
+            for j in range(1, shape[1] + 1):
+                yrange = ((i - 1) * y + 1, i * y + 1)
+                xrange = ((j - 1) * x + 1, j * x + 1)
+                if i == shape[0]:
+                    yrange = (yrange[0], n + 1)
+                if j == shape[1]:
+                    xrange = (xrange[0], m + 1)
+                retval[i, j] = self.submatrix(a, yrange, xrange)
+
+        return retval
 
     def __ai(self, A, B):
-        m = len(A)
-        n = len(A[0])
-        k = len(B[0])
-        if m % 4 != 0 or n % 5 != 0 or k % 5 != 0:
-            return self.multiply_matrices(A, B)
-
-        C = [[0] * 5 for _ in range(4)]
-
-        A_blocks = self.divide_matrix(A, 4, 5)
-        B_blocks = self.divide_matrix(B, 5, 5)
-
-        self.h[0] = self.__ai(A_blocks[2][1], self.calculator.subtract(
-            self.calculator.subtract(self.calculator.negate(B_blocks[1][0]), B_blocks[1][4]), B_blocks[2][0]))
-
-        self.h[1] = self.__ai(self.calculator.add(A_blocks[1][1], self.calculator.subtract(A_blocks[1][4], A_blocks[2][4])),
-                            self.calculator.negate(self.calculator.add(B_blocks[1][4], B_blocks[4][0])))
-
-        self.h[2] = self.__ai(
-            self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[2][0]), A_blocks[3][0]),
-                                   A_blocks[3][1]), self.calculator.add(self.calculator.negate(B_blocks[0][0]), B_blocks[1][4]))
-
-        self.h[3] = self.__ai(self.calculator.add(self.calculator.add(A_blocks[0][1], A_blocks[0][3]), A_blocks[2][3]),
-                            self.calculator.negate(self.calculator.add(B_blocks[1][4], B_blocks[3][0])))
-
-        self.h[4] = self.__ai(self.calculator.add(self.calculator.add(A_blocks[0][4], A_blocks[1][1]), A_blocks[1][4]),
-                            self.calculator.add(self.calculator.negate(B_blocks[1][3]), B_blocks[4][0]))
-
-        self.h[5] = self.__ai(
-            self.calculator.subtract(self.calculator.subtract(self.calculator.negate(A_blocks[1][1]), A_blocks[1][4]),
-                                   A_blocks[3][4]), self.calculator.add(B_blocks[1][2], B_blocks[4][0]))
-
-        self.h[6] = self.__ai(
-            self.calculator.subtract(self.calculator.add(self.calculator.negate(A_blocks[0][0]), A_blocks[3][0]),
-                                   A_blocks[3][1]), self.calculator.add(B_blocks[0][0], B_blocks[1][3]))
-
-        self.h[7] = self.__ai(self.calculator.subtract(A_blocks[2][1], self.calculator.add(A_blocks[2][2], A_blocks[3][2])),
-                            self.calculator.add(self.calculator.negate(B_blocks[1][2]), B_blocks[2][0]))
-
-        self.h[8] = self.__ai(
-            self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[0][1]), A_blocks[0][3]),
-                              A_blocks[3][3]), self.calculator.add(B_blocks[1][2], B_blocks[3][0]))
-
-        self.h[9] = self.__ai(self.calculator.add(A_blocks[1][1], A_blocks[1][4]), B_blocks[4][0])
-
-        self.h[10] = self.__ai(
-            self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[1][0]), A_blocks[3][0]),
-                              A_blocks[3][1]), self.calculator.add(self.calculator.negate(B_blocks[0][0]), B_blocks[1][1]))
-
-        self.h[11] = self.__ai(self.calculator.subtract(A_blocks[3][0], A_blocks[3][1]), B_blocks[0][0])
-        self.h[12] = self.__ai(self.calculator.add(self.calculator.add(A_blocks[0][1], A_blocks[0][3]), A_blocks[1][3]),
-                             self.calculator.add(B_blocks[1][1], B_blocks[3][0]))
-        self.h[13] = self.__ai(self.calculator.add(self.calculator.subtract(A_blocks[0][2], A_blocks[2][1]), A_blocks[2][2]),
-                             self.calculator.add(B_blocks[1][3], B_blocks[2][0]))
-        self.h[14] = self.__ai(self.calculator.subtract(self.calculator.negate(A_blocks[0][1]), A_blocks[0][3]), B_blocks[3][0])
-        self.h[15] = self.__ai(self.calculator.add(self.calculator.negate(A_blocks[2][1]), A_blocks[2][2]), B_blocks[2][0])
-        self.h[16] = self.__ai(
-            self.calculator.add(
-                self.calculator.subtract(
-                    self.calculator.add(
-                        self.calculator.subtract(
-                            self.calculator.add(
-                                self.calculator.subtract(
-                                    self.calculator.add(
-                                        self.calculator.subtract(
-                                            self.calculator.add(A_blocks[0][1], A_blocks[0][3]),
-                                            A_blocks[1][0]
-                                        ),
-                                        A_blocks[1][1]
-                                    ),
-                                    A_blocks[1][2]
-                                ),
-                                A_blocks[1][3]
-                            ),
-                            A_blocks[2][1]
-                        ),
-                        A_blocks[2][2]
-                    ),
-                    A_blocks[3][0]
-                ),
-                A_blocks[3][1]
-            ),
-            B_blocks[1][1]
-        )
-        self.h[17] = self.__ai(A_blocks[1][0],
-                             self.calculator.add(self.calculator.add(B_blocks[0][0], B_blocks[0][1]), B_blocks[4][1]))
-        self.h[18] = self.__ai(self.calculator.negate(A_blocks[1][2]),
-                             self.calculator.add(self.calculator.add(B_blocks[2][0], B_blocks[2][1]), B_blocks[4][1]))
-        self.h[19] = self.__ai(self.calculator.add(
-            self.calculator.add(self.calculator.add(self.calculator.negate(A_blocks[0][4]), A_blocks[1][0]), A_blocks[1][2]),
-            self.calculator.negate(A_blocks[1][4])), self.calculator.subtract(
-            self.calculator.add(self.calculator.subtract(self.calculator.negate(B_blocks[0][0]), B_blocks[0][1]),
-                              B_blocks[0][3]), B_blocks[4][1]))
-        self.h[20] = self.__ai(
-            self.calculator.add(self.calculator.add(A_blocks[1][0], A_blocks[1][2]), self.calculator.negate(A_blocks[1][4])),
-            B_blocks[4][1])
-        self.h[21] = self.__ai(
-            self.calculator.subtract(self.calculator.subtract(A_blocks[0][2], A_blocks[0][3]), A_blocks[1][3]),
-            self.calculator.add(
-                self.calculator.add(
-                    self.calculator.subtract(
-                        self.calculator.add(
-                            self.calculator.add(self.calculator.add(B_blocks[0][0], B_blocks[0][1]),
-                                              self.calculator.negate(B_blocks[0][3])),
-                            self.calculator.negate(B_blocks[2][0])
-                        ),
-                        B_blocks[2][1]
-                    ),
-                    B_blocks[2][3]
-                ),
-                B_blocks[3][3]
-            )
-        )
-
-        self.h[22] = self.__ai(A_blocks[0][2],
-                             self.calculator.add(self.calculator.add(self.calculator.negate(B_blocks[2][0]), B_blocks[2][3]),
-                                               B_blocks[3][3]))
-
-        self.h[23] = self.__ai(A_blocks[0][4],
-                             self.calculator.add(
-                                 self.calculator.subtract(self.calculator.negate(B_blocks[3][3]), B_blocks[4][0]),
-                                 B_blocks[4][3]))
-
-        self.h[24] = self.__ai(self.calculator.negate(A_blocks[0][0]),
-                             self.calculator.subtract(B_blocks[0][0], B_blocks[0][3]))
-
-        self.h[25] = self.__ai(
-            self.calculator.add(self.calculator.add(self.calculator.negate(A_blocks[0][2]), A_blocks[0][3]), A_blocks[0][4]),
-            B_blocks[3][3])
-
-        self.h[26] = self.__ai(self.calculator.add(self.calculator.subtract(A_blocks[0][2], A_blocks[2][0]), A_blocks[2][2]),
-                             self.calculator.add(self.calculator.add(self.calculator.subtract(B_blocks[0][0], B_blocks[0][3]),
-                                                                 B_blocks[0][4]), B_blocks[2][4]))
-
-        self.h[27] = self.__ai(self.calculator.negate(A_blocks[2][3]),
-                             self.calculator.negate(
-                                 self.calculator.add(self.calculator.add(B_blocks[2][4], B_blocks[3][0]), B_blocks[3][4])))
-
-        self.h[28] = self.__ai(A_blocks[2][0],
-                             self.calculator.add(self.calculator.add(B_blocks[0][0], B_blocks[0][4]), B_blocks[2][4]))
-
-        self.h[29] = self.__ai(self.calculator.add(self.calculator.subtract(A_blocks[2][0], A_blocks[2][2]), A_blocks[2][3]),
-                             B_blocks[2][4])
-
-        self.h[30] = self.__ai(
-            self.calculator.subtract(
-                self.calculator.subtract(self.calculator.negate(A_blocks[0][3]), A_blocks[0][4]),
-                A_blocks[2][3]
-            ),
-            self.calculator.subtract(
-                self.calculator.add(
-                    self.calculator.subtract(self.calculator.negate(B_blocks[3][3]), B_blocks[4][0]),
-                    B_blocks[4][3]
-                ),
-                B_blocks[4][4]
-            )
-        )
-
-        self.h[31] = self.__ai(self.calculator.add(self.calculator.add(A_blocks[1][0], A_blocks[3][0]), A_blocks[3][3]),
-                             self.calculator.subtract(
-                                 self.calculator.subtract(self.calculator.subtract(B_blocks[0][2], B_blocks[3][0]),
-                                                        B_blocks[3][1]), B_blocks[3][2]))
-
-        self.h[32] = self.__ai(A_blocks[3][2],
-                             self.calculator.negate(self.calculator.add(B_blocks[2][0], B_blocks[2][2])))
-
-        self.h[33] = self.__ai(A_blocks[3][3],
-                             self.calculator.add(self.calculator.add(self.calculator.negate(B_blocks[0][2]), B_blocks[3][0]),
-                                               B_blocks[3][2]))
-
-        self.h[34] = self.__ai(self.calculator.negate(A_blocks[3][4]),
-                             self.calculator.add(self.calculator.add(B_blocks[0][2], B_blocks[4][0]), B_blocks[4][2]))
-
-        self.h[35] = self.__ai(
-            self.calculator.subtract(self.calculator.subtract(A_blocks[1][2], A_blocks[1][4]), A_blocks[3][4]),
-            self.calculator.add(self.calculator.add(self.calculator.add(B_blocks[2][0], B_blocks[2][1]), B_blocks[2][2]),
-                              B_blocks[4][1]))
-
-        self.h[36] = self.__ai(
-            self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[3][0]), A_blocks[3][3]),
-                              A_blocks[3][4]),
-            B_blocks[0][2])
-
-        self.h[37] = self.__ai(self.calculator.subtract(
-            self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[1][2]), A_blocks[2][0]),
-                              A_blocks[2][2]), A_blocks[2][3]),
-                             self.calculator.add(
-                                 self.calculator.add(self.calculator.add(B_blocks[2][4], B_blocks[3][0]), B_blocks[3][1]),
-                                 B_blocks[3][4]))
-
-        self.h[38] = self.__ai(self.calculator.add(
-            self.calculator.subtract(self.calculator.subtract(self.calculator.negate(A_blocks[2][0]), A_blocks[3][0]),
-                                   A_blocks[3][3]), A_blocks[3][4]),
-                             self.calculator.add(
-                                 self.calculator.add(self.calculator.add(B_blocks[0][2], B_blocks[4][0]), B_blocks[4][2]),
-                                 B_blocks[4][4]))
-
-        self.h[39] = self.__ai(self.calculator.add(
-            self.calculator.add(self.calculator.add(self.calculator.negate(A_blocks[0][2]), A_blocks[0][3]), A_blocks[0][4]),
-            self.calculator.negate(A_blocks[3][3])),
-                             self.calculator.add(self.calculator.add(
-                                 self.calculator.subtract(self.calculator.negate(B_blocks[2][0]), B_blocks[2][2]),
-                                 B_blocks[2][3]), B_blocks[3][3]))
-
-        self.h[40] = self.__ai(
-            self.calculator.subtract(self.calculator.add(self.calculator.negate(A_blocks[0][0]), A_blocks[3][0]),
-                                   A_blocks[3][4]),
-            self.calculator.subtract(self.calculator.add(self.calculator.add(self.calculator.subtract(
-                self.calculator.add(self.calculator.add(B_blocks[0][2], B_blocks[2][0]), B_blocks[2][2]), B_blocks[2][3]),
-                                                                       B_blocks[4][0]), B_blocks[4][2]),
-                                   B_blocks[4][3]))
-
-        self.h[41] = self.__ai(
-            self.calculator.subtract(self.calculator.add(self.calculator.negate(A_blocks[1][0]), A_blocks[1][4]),
-                                   A_blocks[2][4]),
-            self.calculator.subtract(self.calculator.add(self.calculator.add(self.calculator.add(
-                self.calculator.add(self.calculator.subtract(self.calculator.negate(B_blocks[0][0]), B_blocks[0][1]),
-                                  self.calculator.negate(B_blocks[0][4])),
-                B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][4]), B_blocks[4][1]))
-
-        self.h[42] = self.__ai(A_blocks[1][3],
-                             self.calculator.add(B_blocks[3][0], B_blocks[3][1]))
-
-        self.h[43] = self.__ai(
-            self.calculator.add(self.calculator.add(A_blocks[1][2], A_blocks[2][1]), self.calculator.negate(A_blocks[2][2])),
-            self.calculator.subtract(B_blocks[1][1], B_blocks[2][0]))
-
-        self.h[44] = self.__ai(
-            self.calculator.add(
-                self.calculator.add(self.calculator.negate(A_blocks[2][2]), A_blocks[2][3]),
-                self.calculator.negate(A_blocks[3][2])
-            ),
-            self.calculator.add(
-                self.calculator.add(
-                    self.calculator.add(B_blocks[2][4], B_blocks[3][0]),
-                    B_blocks[3][2]
-                ),
-                self.calculator.add(
-                    self.calculator.add(B_blocks[3][4], B_blocks[4][0]),
-                    self.calculator.add(B_blocks[4][2], B_blocks[4][4])
-                )
-            )
-        )
-
-        self.h[45] = self.__ai(self.calculator.negate(A_blocks[2][4]),
-                             self.calculator.negate(self.calculator.add(B_blocks[4][0], B_blocks[4][4])))
-
-        self.h[46] = self.__ai(self.calculator.add(
-            self.calculator.subtract(self.calculator.subtract(A_blocks[1][0], A_blocks[1][4]), A_blocks[2][0]),
-            A_blocks[2][4]),
-                             self.calculator.subtract(self.calculator.subtract(self.calculator.subtract(
-                                 self.calculator.add(self.calculator.add(B_blocks[0][0], B_blocks[0][1]), B_blocks[0][4]),
-                                 B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][4]))
-
-        self.h[47] = self.__ai(self.calculator.add(self.calculator.negate(A_blocks[1][2]), A_blocks[2][2]),
-                             self.calculator.add(self.calculator.add(self.calculator.add(
-                                 self.calculator.add(self.calculator.add(B_blocks[1][1], B_blocks[2][1]), B_blocks[2][4]),
-                                 B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][4]))
-
-        self.h[48] = self.__ai(self.calculator.add(self.calculator.add(self.calculator.subtract(self.calculator.subtract(
-            self.calculator.add(
-                self.calculator.add(self.calculator.subtract(self.calculator.negate(A_blocks[0][0]), A_blocks[0][2]),
-                                  A_blocks[0][3]),
-                A_blocks[0][4]), A_blocks[1][0]), A_blocks[1][2]), A_blocks[1][3]), A_blocks[1][4]),
-                             self.calculator.add(
-                                 self.calculator.subtract(self.calculator.negate(B_blocks[0][0]), B_blocks[0][1]),
-                                 B_blocks[0][3]))
-
-        self.h[49] = self.__ai(self.calculator.subtract(self.calculator.negate(A_blocks[0][3]), A_blocks[1][3]),
-                             self.calculator.add(self.calculator.subtract(self.calculator.add(
-                                 self.calculator.subtract(self.calculator.subtract(B_blocks[1][1], B_blocks[2][0]),
-                                                        B_blocks[2][1]),
-                                 B_blocks[2][3]), B_blocks[3][1]), B_blocks[3][3]))
-
-        self.h[50] = self.__ai(A_blocks[1][1],
-                             self.calculator.add(self.calculator.add(B_blocks[1][0], B_blocks[1][1]),
-                                               self.calculator.negate(B_blocks[4][0])))
-
-        self.h[51] = self.__ai(A_blocks[3][1],
-                             self.calculator.add(self.calculator.add(B_blocks[0][0], B_blocks[1][0]), B_blocks[1][2]))
-
-        self.h[52] = self.__ai(
-            self.calculator.negate(A_blocks[0][1]),
-            self.calculator.add(
-                self.calculator.add(self.calculator.negate(B_blocks[1][0]), B_blocks[1][3]),
-                B_blocks[3][0]
-            )
-        )
-
-        self.h[53] = self.__ai(self.calculator.subtract(self.calculator.subtract(self.calculator.add(self.calculator.subtract(
-            self.calculator.add(self.calculator.subtract(self.calculator.subtract(
-                self.calculator.subtract(self.calculator.add(A_blocks[0][1], A_blocks[0][3]), A_blocks[1][1]),
-                A_blocks[1][4]),
-                                                     A_blocks[2][1]), A_blocks[2][2]), A_blocks[3][1]), A_blocks[3][2]),
-                                                                           A_blocks[3][3]), A_blocks[3][4]),
-                             B_blocks[1][2])
-
-        self.h[54] = self.__ai(
-            self.calculator.subtract(A_blocks[0][3], A_blocks[3][3]),
-            self.calculator.subtract(self.calculator.add(
-                self.calculator.subtract(
-                    self.calculator.add(
-                        self.calculator.add(self.calculator.negate(B_blocks[1][2]), B_blocks[2][0]), B_blocks[2][2]),
-                    B_blocks[2][3]), B_blocks[3][2]), B_blocks[3][3]))
-
-        self.h[55] = self.__ai(self.calculator.add(
-            self.calculator.subtract(self.calculator.subtract(A_blocks[0][0], A_blocks[0][4]), A_blocks[3][0]),
-            A_blocks[3][4]),
-                             self.calculator.add(self.calculator.subtract(self.calculator.add(B_blocks[2][0], B_blocks[2][2]),
-                                                                      B_blocks[2][3]),
-                                               self.calculator.subtract(self.calculator.add(B_blocks[4][0], B_blocks[4][2]),
-                                                                      B_blocks[4][3])))
-
-        self.h[56] = self.__ai(self.calculator.subtract(self.calculator.negate(A_blocks[2][0]), A_blocks[3][0]),
-                             self.calculator.subtract(self.calculator.subtract(self.calculator.subtract(
-                                 self.calculator.subtract(
-                                     self.calculator.subtract(self.calculator.negate(B_blocks[0][2]), B_blocks[0][4]),
-                                     B_blocks[1][4]), B_blocks[4][0]), B_blocks[4][2]), B_blocks[4][4]))
-
-        self.h[57] = self.__ai(self.calculator.subtract(
-            self.calculator.subtract(self.calculator.subtract(self.calculator.negate(A_blocks[0][3]), A_blocks[0][4]),
-                                   A_blocks[2][3]), A_blocks[2][4]),
-                             self.calculator.subtract(
-                                 self.calculator.add(self.calculator.negate(B_blocks[4][0]), B_blocks[4][3]), B_blocks[4][4]))
-
-        self.h[58] = self.__ai(self.calculator.add(
-            self.calculator.subtract(self.calculator.add(self.calculator.negate(A_blocks[2][2]), A_blocks[2][3]),
-                                   A_blocks[3][2]), A_blocks[3][3]),
-                             self.calculator.add(self.calculator.add(self.calculator.add(
-                                 self.calculator.add(self.calculator.add(B_blocks[3][0], B_blocks[3][2]), B_blocks[3][4]),
-                                 B_blocks[4][0]), B_blocks[4][2]), B_blocks[4][4]))
-
-        self.h[59] = self.__ai(self.calculator.add(A_blocks[1][4], A_blocks[3][4]),
-                             self.calculator.subtract(self.calculator.subtract(self.calculator.subtract(
-                                 self.calculator.subtract(self.calculator.subtract(B_blocks[1][2], B_blocks[2][0]),
-                                                        B_blocks[2][1]), B_blocks[2][2]), B_blocks[4][1]),
-                                                    B_blocks[4][2]))
-
-        self.h[60] = self.__ai(
-            self.calculator.add(A_blocks[0][3], A_blocks[2][3]),
-            self.calculator.subtract(
-                self.calculator.add(
-                    self.calculator.subtract(
-                        self.calculator.add(
-                            self.calculator.subtract(
-                                self.calculator.subtract(
-                                    self.calculator.add(
-                                        self.calculator.subtract(B_blocks[0][0], B_blocks[0][3]),
-                                        B_blocks[0][4]
-                                    ), B_blocks[1][4]),
-                                B_blocks[3][3]), B_blocks[3][4]),
-                        B_blocks[4][0]), B_blocks[4][3]), B_blocks[4][0])
-        )
-
-        self.h[61] = self.__ai(self.calculator.add(A_blocks[1][0], A_blocks[3][0]),
-                             self.calculator.subtract(self.calculator.subtract(self.calculator.subtract(
-                                 self.calculator.add(self.calculator.add(B_blocks[0][1], B_blocks[0][2]), B_blocks[1][1]),
-                                 B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][2]))
-
-        self.h[62] = self.__ai(
-            self.calculator.subtract(self.calculator.negate(A_blocks[2][2]), A_blocks[3][2]),
-            self.calculator.subtract(
-                self.calculator.subtract(
-                    self.calculator.subtract(
-                        self.calculator.subtract(
-                            self.calculator.subtract(self.calculator.negate(B_blocks[1][2]), B_blocks[2][2]),
-                            B_blocks[2][4]), B_blocks[3][0]), B_blocks[3][2]), B_blocks[3][4]))
-
-        self.h[63] = self.__ai(
-            self.calculator.subtract(
-                self.calculator.subtract(
-                    self.calculator.add(
-                        self.calculator.subtract(
-                            self.calculator.subtract(A_blocks[0][0], A_blocks[0][2]),
-                            A_blocks[0][3]
-                        ), A_blocks[2][0]), A_blocks[2][2]), A_blocks[2][3]
-
-            ),
-            self.calculator.add(
-                self.calculator.subtract(B_blocks[0][0], B_blocks[0][3]),
-                B_blocks[0][4]
-            )
-        )
-
-        self.h[64] = self.__ai(
-            self.calculator.add(self.calculator.negate(A_blocks[0][0]), A_blocks[3][0]),
-            self.calculator.add(
-                self.calculator.subtract(
-                    self.calculator.subtract(
-                        self.calculator.add(
-                            self.calculator.add(self.calculator.negate(B_blocks[0][2]), B_blocks[0][3]),
-                            B_blocks[1][3]), B_blocks[4][0]), B_blocks[4][2]), B_blocks[4][3])
-        )
-
-        self.h[65] = self.__ai(
-            self.calculator.add(
-                self.calculator.subtract(
-                    self.calculator.add(
-                        self.calculator.subtract(
-                            self.calculator.subtract(
-                                self.calculator.subtract(
-                                    self.calculator.subtract(
-                                        self.calculator.add(
-                                            self.calculator.subtract(A_blocks[0][0], A_blocks[0][1]),
-                                            A_blocks[0][2]
-                                        ),
-                                        A_blocks[0][4]
-                                    ), A_blocks[1][1]), A_blocks[1][4]), A_blocks[2][1]), A_blocks[2][2]),
-                    A_blocks[3][0]),
-                A_blocks[3][1]),
-
-            B_blocks[1][3]
-        )
-
-        self.h[66] = self.__ai(
-            self.calculator.subtract(A_blocks[1][4], A_blocks[2][4]),
-            self.calculator.add(
-                self.calculator.add(self.calculator.subtract(
-                    self.calculator.subtract(
-                        self.calculator.subtract(
-                            self.calculator.subtract(
-                                self.calculator.add(
-                                    self.calculator.add(B_blocks[0][0], B_blocks[0][1]),
-                                    B_blocks[0][4]), B_blocks[1][4]), B_blocks[3][0]), B_blocks[3][1]), B_blocks[3][4]),
-                    B_blocks[4][1]), B_blocks[4][4])
-
-        )
-
-        self.h[67] = self.__ai(
-            self.calculator.add(
-                self.calculator.add(
-                    self.calculator.subtract(
-                        self.calculator.subtract(
-                            self.calculator.subtract(
-                                self.calculator.subtract(
-                                    self.calculator.add(A_blocks[0][0], A_blocks[0][2]), A_blocks[0][3]), A_blocks[0][4]),
-                            A_blocks[3][0]), A_blocks[3][2]), A_blocks[3][3]), A_blocks[3][4]),
-
-            self.calculator.add(self.calculator.subtract(self.calculator.negate(B_blocks[2][0]), B_blocks[2][2]),
-                              B_blocks[2][3]
-                              )
-        )
-
-        self.h[68] = self.__ai(
-            self.calculator.add(
-                self.calculator.subtract(
-                    self.calculator.add(self.calculator.negate(A_blocks[0][2]), A_blocks[0][3]),
-                    A_blocks[1][2]), A_blocks[1][3]),
-
-            self.calculator.add(
-                self.calculator.subtract(
-                    self.calculator.add(
-                        self.calculator.subtract(
-                            self.calculator.subtract(self.calculator.negate(B_blocks[1][3]), B_blocks[2][0]),
-                            B_blocks[2][1]), B_blocks[2][3]), B_blocks[4][1]), B_blocks[4][3]))
-
-        self.h[69] = self.__ai(
-            self.calculator.subtract(
-                self.calculator.add(
-                    self.calculator.add(A_blocks[1][2], self.calculator.negate(A_blocks[1][4])),
-                    A_blocks[3][2]
-                ),
-                A_blocks[3][4]
-            ),
-            self.calculator.negate(
-                self.calculator.add(
-                    self.calculator.add(B_blocks[2][0], B_blocks[2][1]),
-                    B_blocks[2][2]
-                )
-            )
-        )
-
-        self.h[70] = self.__ai(
-            self.calculator.add(
-                self.calculator.subtract(
-                    self.calculator.add(
-                        self.calculator.subtract(
-                            self.calculator.add(
-                                self.calculator.subtract(
-                                    self.calculator.add(self.calculator.negate(A_blocks[2][0]), A_blocks[2][2]),
-                                    A_blocks[2][3]
-                                ),
-                                A_blocks[2][4]
-                            ), A_blocks[3][0]), A_blocks[3][2]), A_blocks[3][3]), A_blocks[3][4]),
-
-            self.calculator.negate(
-                self.calculator.add(
-                    self.calculator.add(B_blocks[4][0], B_blocks[4][2]),
-                    B_blocks[4][4]
-                )
-            )
-        )
-
-        self.h[71] = self.__ai(self.calculator.subtract(
-            self.calculator.subtract(self.calculator.subtract(self.calculator.negate(A_blocks[1][0]), A_blocks[1][3]),
-                                   A_blocks[3][0]), A_blocks[3][3]),
-                             self.calculator.add(self.calculator.add(B_blocks[3][0], B_blocks[3][1]), B_blocks[3][2]))
-
-        self.h[72] = self.__ai(
-            self.calculator.subtract(
-                self.calculator.subtract(
-                    self.calculator.add(
-                        self.calculator.subtract(
-                            self.calculator.subtract(
-                                A_blocks[0][2], A_blocks[0][3]), A_blocks[0][4]), A_blocks[1][2]), A_blocks[1][3]),
-                A_blocks[1][4]),
-            self.calculator.subtract(
-                self.calculator.add(
-                    self.calculator.add(
-                        self.calculator.subtract(
-                            self.calculator.add(B_blocks[0][0], B_blocks[0][1]), B_blocks[0][3]), B_blocks[1][3]),
-                    B_blocks[4][1]), B_blocks[4][3])
-
-        )
-
-        self.h[73] = self.__ai(self.calculator.subtract(self.calculator.add(self.calculator.subtract(
-            self.calculator.add(self.calculator.subtract(A_blocks[1][0], A_blocks[1][2]), A_blocks[1][3]), A_blocks[2][0]),
-                                                                      A_blocks[2][2]), A_blocks[2][3]),
-
-                             self.calculator.add(self.calculator.add(B_blocks[3][0], B_blocks[3][1]), B_blocks[3][4]))
-
-        self.h[74] = self.__ai(
-            self.calculator.add(
-                self.calculator.subtract(
-                    self.calculator.add(
-                        self.calculator.add(
-                            self.calculator.add(
-                                self.calculator.subtract(
-                                    self.calculator.subtract(
-                                        self.calculator.subtract(
-                                            self.calculator.add(A_blocks[0][1], A_blocks[0][3]),
-                                            A_blocks[1][1]), A_blocks[1][4]), A_blocks[2][0]), A_blocks[2][1]),
-                            A_blocks[2][3]), A_blocks[2][4]), A_blocks[3][0]),
-                A_blocks[3][1]),
-
-            B_blocks[1][4]
-        )
-
-        self.h[75] = self.__ai(self.calculator.add(A_blocks[0][2], A_blocks[2][2]),
-                             self.calculator.subtract(self.calculator.add(self.calculator.add(self.calculator.subtract(
-                                 self.calculator.add(self.calculator.negate(B_blocks[0][0]), B_blocks[0][3]), B_blocks[0][4]),
-                                                                                        B_blocks[1][3]),
-                                                                      B_blocks[2][3]), B_blocks[2][4]))
-
-        for i in range(76):
-            self.h[i] = self.h[i][0]
-
-        C[0][0] = -self.h[9][0] + self.h[11][0] + self.h[13][0] - self.h[14][0] - self.h[15][0] + self.h[52][0] + \
-                  self.h[4][0] - self.h[65][0] - self.h[6][0]
-        C[1][0] = self.h[9][0] + self.h[10][0] - self.h[11][0] + self.h[12][0] + self.h[14][0] + self.h[15][0] - \
-                  self.h[16][0] - self.h[43][0] + self.h[50][0]
-        C[2][0] = self.h[9][0] - self.h[11][0] + self.h[14][0] + self.h[15][0] - self.h[0][0] + self.h[1][0] + \
-                  self.h[2][0] - self.h[3][0] + self.h[74][0]
-        C[3][0] = -self.h[9][0] + self.h[11][0] - self.h[14][0] - self.h[15][0] + self.h[51][0] + self.h[53][0] - \
-                  self.h[5][0] - self.h[7][0] + self.h[8][0]
-        C[0][1] = self.h[12][0] + self.h[14][0] + self.h[19][0] + self.h[20][0] - self.h[21][0] + self.h[22][0] + \
-                  self.h[24][0] - self.h[42][0] + self.h[48][0] + self.h[49][0]
-        C[1][1] = -self.h[10][0] + self.h[11][0] - self.h[12][0] - self.h[14][0] - self.h[15][0] + self.h[16][0] + \
-                  self.h[17][0] - self.h[18][0] - self.h[20][0] + self.h[42][0] + self.h[43][0]
-        C[2][1] = -self.h[15][0] - self.h[18][0] - self.h[20][0] - self.h[27][0] - self.h[28][0] - self.h[37][0] + \
-                  self.h[41][0] + self.h[43][0] - self.h[46][0] + self.h[47][0]
-        C[3][1] = self.h[10][0] - self.h[11][0] - self.h[17][0] + self.h[20][0] - self.h[31][0] + self.h[32][0] - \
-                  self.h[33][0] - self.h[35][0] + self.h[61][0] - self.h[69][0]
-        C[0][2] = self.h[14][0] + self.h[22][0] + self.h[23][0] + self.h[33][0] - self.h[36][0] + self.h[39][0] - \
-                  self.h[40][0] + self.h[54][0] - self.h[55][0] - self.h[8][0]
-        C[1][2] = -self.h[9][0] + self.h[18][0] + self.h[31][0] + self.h[34][0] + self.h[35][0] + self.h[36][0] - \
-                  self.h[42][0] - self.h[59][0] - self.h[5][0] - self.h[71][0]
-        C[2][2] = -self.h[15][0] - self.h[27][0] + self.h[32][0] + self.h[36][0] - self.h[38][0] + self.h[44][0] - \
-                  self.h[45][0] + self.h[62][0] - self.h[70][0] - self.h[7][0]
-        C[3][2] = self.h[9][0] + self.h[14][0] + self.h[15][0] - self.h[32][0] + self.h[33][0] - self.h[34][0] - \
-                  self.h[36][0] - self.h[53][0] + self.h[5][0] + self.h[7][0] - self.h[8][0]
-        C[0][3] = -self.h[9][0] + self.h[11][0] + self.h[13][0] - self.h[15][0] + self.h[22][0] + self.h[23][0] + \
-                  self.h[24][0] + self.h[25][0] + self.h[4][0] - self.h[65][0] - self.h[6][0]
-        C[1][3] = self.h[9][0] + self.h[17][0] - self.h[18][0] + self.h[19][0] - self.h[21][0] - self.h[23][0] - \
-                  self.h[25][0] - self.h[4][0] - self.h[68][0] + self.h[72][0]
-        C[2][3] = -self.h[13][0] + self.h[15][0] - self.h[22][0] - self.h[25][0] + self.h[26][0] + self.h[28][0] + \
-                  self.h[30][0] + self.h[45][0] - self.h[57][0] + self.h[75][0]
-        C[3][3] = self.h[11][0] + self.h[24][0] + self.h[25][0] - self.h[32][0] - self.h[34][0] - self.h[39][0] + \
-                  self.h[40][0] + self.h[64][0] - self.h[67][0] - self.h[6][0]
-        C[0][4] = self.h[14][0] + self.h[23][0] + self.h[24][0] + self.h[26][0] - self.h[27][0] + self.h[29][0] + \
-                  self.h[30][0] - self.h[3][0] + self.h[60][0] + self.h[63][0]
-        C[1][4] = -self.h[9][0] - self.h[17][0] - self.h[1][0] - self.h[29][0] - self.h[37][0] + self.h[41][0] - \
-                  self.h[42][0] + self.h[45][0] + self.h[66][0] + self.h[73][0]
-        C[2][4] = -self.h[9][0] + self.h[11][0] - self.h[14][0] + self.h[27][0] + self.h[28][0] - self.h[1][0] - \
-                  self.h[29][0] - self.h[2][0] + self.h[45][0] + self.h[3][0] - self.h[74][0]
-        C[3][4] = -self.h[11][0] - self.h[28][0] + self.h[29][0] - self.h[33][0] + self.h[34][0] + self.h[38][0] + \
-                  self.h[2][0] - self.h[44][0] + self.h[56][0] + self.h[58][0]
-
-        return self.fill_matrix(C, m, k, m // 4, k // 5)
+        a = Matrix(A, self.calculator, multiplication=self.recursive_ai)
+        b = Matrix(B, self.calculator, multiplication=self.recursive_ai)
+        return (a @ b).data
+
+    @staticmethod
+    def power(a: int, b: int) -> int:
+        return b ** math.ceil(math.log(a, b))
+
+    def rescale(self, a, shape):
+        data = [[0] * shape[1] for _ in range(shape[0])]
+
+        for i in range(a.shape[0]):
+            for j in range(a.shape[1]):
+                data[i][j] = a[i + 1, j + 1]
+
+        return Matrix.in_place(data, self.calculator, multiplication=a.multiplication)
+    def recursive_ai(self, a, b):
+        # Scales up matrices to powers of 4 and 5 by appending zeroes
+        if a.shape[0] < 4 or a.shape[1] < 5 or b.shape[0] < 5 or b.shape[1] < 5:
+            return Matrix(self.calculator.standard_matrix_multiplication(a.data, b.data), self.calculator, multiplication=a.multiplication)
+        n, k = a.shape
+        k, m = b.shape
+        a = self.rescale(a, shape=(self.power(n, 4), self.power(k, 5)))
+        b = self.rescale(b, shape=(self.power(k, 5), self.power(m, 5)))
+        a.multiplication = self.recursive_ai_rec
+        b.multiplication = self.recursive_ai_rec
+        retval = self.recursive_ai_rec(a, b)
+
+        return self.submatrix(retval, yrange=(1, n + 1), xrange=(1, m + 1))
+
+    def recursive_ai_rec(self, a, b):
+        # Works only for powers of 4 and 5
+        if a.shape[0] < 4 or a.shape[1] < 5 or b.shape[0] < 5 or b.shape[1] < 5:
+            return Matrix(self.calculator.standard_matrix_multiplication(a.data, b.data), self.calculator, multiplication=a.multiplication)
+
+        A = self.block(a, shape=(4, 5))
+        B = self.block(b, shape=(5, 5))
+        return self.expand(self.ai_multiplication(A, B))
 
     def run(self, A, B):
         self.matrix_3 = self.__ai(A, B)
@@ -662,7 +287,7 @@ class AIAlgorithm(BaseAlgorithm):
         ]
         self.run(A1, B1)
         result = self.matrix_3
-        result2 = self.multiply_matrices(A1, B1)
+        result2 = self.calculator.standard_matrix_multiplication(A1, B1)
         print(result)
         print(result2)
         assert result2 == result, "Error"

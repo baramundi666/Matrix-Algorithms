@@ -1,6 +1,6 @@
-from tests.test_ai_algorithm import TestAIAlgorithm
-from tests.test_binet_algorithm import TestBinetAlgorithm
-from tests.test_strassen_algorithm import TestStrassenAlgorithm
+from test_ai_algorithm import TestAIAlgorithm
+from test_binet_algorithm import TestBinetAlgorithm
+from test_strassen_algorithm import TestStrassenAlgorithm
 
 
 def main():

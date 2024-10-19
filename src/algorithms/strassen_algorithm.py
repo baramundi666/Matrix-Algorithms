@@ -1,4 +1,4 @@
-from src.base_algorithm import BaseAlgorithm
+from base_algorithm import BaseAlgorithm
 
 
 class StrassenAlgorithm(BaseAlgorithm):
