@@ -1,11 +1,13 @@
 class Calculator:
     def __init__(self):
+        self.total_count = 0
         self.add_count = 0
         self.subtract_count = 0
         self.negate_count = 0
         self.multiply_count = 0
 
     def reset_counters(self):
+        self.total_count = 0
         self.add_count = 0
         self.subtract_count = 0
         self.negate_count = 0
@@ -18,6 +20,7 @@ class Calculator:
         for i in range(n):
             for j in range(m):
                 # atomic addition
+                self.total_count += 1
                 self.add_count += 1
                 matrix_3[i][j] = matrix_1[i][j] + matrix_2[i][j]
         return matrix_3
@@ -29,6 +32,7 @@ class Calculator:
         for i in range(n):
             for j in range(m):
                 # atomic subtraction
+                self.total_count += 1
                 self.subtract_count += 1
                 matrix_3[i][j] = matrix_1[i][j] - matrix_2[i][j]
         return matrix_3
@@ -40,12 +44,14 @@ class Calculator:
         for i in range(n):
             for j in range(m):
                 # atomic negation
+                self.total_count += 1
                 self.negate_count += 1
                 matrix_[i][j] = -matrix[i][j]
         return matrix_
 
     def multiply_one_by_one_matrices(self, matrix_1, matrix_2):
         # atomic multiplication
+        self.total_count += 1
         self.multiply_count += 1
         matrix_3 = [[matrix_1[0][0] * matrix_2[0][0]]]
         return matrix_3
