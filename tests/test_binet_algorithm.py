@@ -11,7 +11,7 @@ class TestBinetAlgorithm(BaseAlgorithmTest):
         super().__init__()
         self.algorithm = BinetAlgorithm()
         self.data = {}
-        self.n = 10
+        self.n = 1000
 
     def run(self):
         range_ = range(1, self.n)

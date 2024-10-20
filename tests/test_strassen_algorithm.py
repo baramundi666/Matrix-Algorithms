@@ -8,13 +8,17 @@ class TestStrassenAlgorithm(BaseAlgorithmTest):
     def __init__(self):
         super().__init__()
         self.algorithm = StrassenAlgorithm()
+        self.data = {}
+        self.n = 10
 
     def run(self):
-        n = 10
-        for test_size in range(1, n):
+        range_ = range(1, self.n)
+        for test_size in range_:
             self.generate_data(test_size)
-            self._run_time_test(f"{test_size} x {test_size}", self.matrix_1, self.matrix_2)
-            self._extract_calculator_data()
+            time = self._run_time_test(f"{test_size} x {test_size}", self.matrix_1, self.matrix_2)
+            flop = self._extract_calculator_data()
+            self.data[test_size] = {"time": time,
+                                    "flop": flop}
             assert_matrix_multiplication_is_correct(self.matrix_1, self.matrix_2, self.algorithm.matrix_3)
 
     @classmethod
