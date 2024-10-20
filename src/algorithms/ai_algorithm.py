@@ -1,4 +1,4 @@
-from base_algorithm import BaseAlgorithm
+from src.base_algorithm import BaseAlgorithm
 import copy
 import numpy as np
 import math

@@ -1,4 +1,4 @@
-from calculator import Calculator
+from src.calculator import Calculator
 
 
 class BaseAlgorithm:

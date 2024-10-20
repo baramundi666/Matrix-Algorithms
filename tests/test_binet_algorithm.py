@@ -1,8 +1,8 @@
 from random import uniform
 
-from algorithms.binet_algorithm import BinetAlgorithm
-from base_algorithm_test import BaseAlgorithmTest
-from utils import assert_matrix_multiplication_is_correct
+from src.algorithms.binet_algorithm import BinetAlgorithm
+from tests.base_algorithm_test import BaseAlgorithmTest
+from tests.utils import assert_matrix_multiplication_is_correct
 
 
 class TestBinetAlgorithm(BaseAlgorithmTest):

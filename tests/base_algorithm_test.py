@@ -1,7 +1,7 @@
 from timeit import default_timer as timer
 from datetime import timedelta
 
-from base_algorithm import BaseAlgorithm
+from src.base_algorithm import BaseAlgorithm
 
 
 class BaseAlgorithmTest:

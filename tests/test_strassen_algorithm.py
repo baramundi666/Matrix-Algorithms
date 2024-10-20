@@ -1,7 +1,7 @@
 from random import uniform
-from algorithms.strassen_algorithm import StrassenAlgorithm
-from base_algorithm_test import BaseAlgorithmTest
-from utils import assert_matrix_multiplication_is_correct
+from src.algorithms.strassen_algorithm import StrassenAlgorithm
+from tests.base_algorithm_test import BaseAlgorithmTest
+from tests.utils import assert_matrix_multiplication_is_correct
 
 
 class TestStrassenAlgorithm(BaseAlgorithmTest):

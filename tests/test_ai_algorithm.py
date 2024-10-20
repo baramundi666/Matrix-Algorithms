@@ -1,8 +1,8 @@
 from random import uniform
 
-from algorithms.ai_algorithm import AIAlgorithm
-from base_algorithm_test import BaseAlgorithmTest
-from utils import assert_matrix_multiplication_is_correct
+from src.algorithms.ai_algorithm import AIAlgorithm
+from tests.base_algorithm_test import BaseAlgorithmTest
+from tests.utils import assert_matrix_multiplication_is_correct
 
 
 class TestAIAlgorithm(BaseAlgorithmTest):
@@ -20,18 +20,19 @@ class TestAIAlgorithm(BaseAlgorithmTest):
 
         for shape in shapes:
             self.generate_data(shape)
-            self._run_time_test("4 x 5, 5 x 5", self.matrix_1, self.matrix_2)
+            self._run_time_test(f"{shape[0]} x {shape[1]}, {shape[1]} x {shape[2]}", self.matrix_1, self.matrix_2)
             self._extract_calculator_data()
             assert_matrix_multiplication_is_correct(self.matrix_1, self.matrix_2, self.algorithm.matrix_3)
 
-    def generate_data(self, test_shapes):
+    @classmethod
+    def generate_data(cls, test_shapes):
         n, k, m = test_shapes
-        self.matrix_1 = [[0 for _ in range(k)] for _ in range(n)]
-        self.matrix_2 = [[0 for _ in range(m)] for _ in range(k)]
+        cls.matrix_1 = [[0 for _ in range(k)] for _ in range(n)]
+        cls.matrix_2 = [[0 for _ in range(m)] for _ in range(k)]
         a, b = 0.00000001, 1.0
         for i in range(n):
             for j in range(k):
-                self.matrix_1[i][j] = uniform(a, b)
+                cls.matrix_1[i][j] = uniform(a, b)
         for i in range(k):
             for j in range(m):
-                self.matrix_2[i][j] = uniform(a, b)
+                cls.matrix_2[i][j] = uniform(a, b)
