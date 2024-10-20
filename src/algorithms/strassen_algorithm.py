@@ -1,3 +1,5 @@
+import math
+
 from src.base_algorithm import BaseAlgorithm
 
 
@@ -10,8 +12,12 @@ class StrassenAlgorithm(BaseAlgorithm):
         """
         matrix_1, matrix_2 - square matrices with size 2^n x 2^n
         """
+        n = len(matrix_1)
+        n_ = 2 ** math.ceil(math.log(n, 2))
+        matrix_1 = self.calculator.expand_matrix_to_shape(matrix_1, (n_, n_))
+        matrix_2 = self.calculator.expand_matrix_to_shape(matrix_2, (n_, n_))
         matrix_3 = self.__rec(matrix_1, matrix_2)
-        self.matrix_3 = matrix_3
+        self.matrix_3 = self.calculator.crop_matrix_to_shape(matrix_3, (n, n))
 
 
     def __rec(self, matrix_1, matrix_2):

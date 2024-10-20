@@ -11,7 +11,8 @@ class TestBinetAlgorithm(BaseAlgorithmTest):
         self.algorithm = BinetAlgorithm()
 
     def run(self):
-        for test_size in [2**k for k in range(1, 5)]:
+        n = 10
+        for test_size in range(1, n):
             self.generate_data(test_size)
             self._run_time_test(f"{test_size} x {test_size}", self.matrix_1, self.matrix_2)
             self._extract_calculator_data()

@@ -1,3 +1,5 @@
+import math
+
 from src.base_algorithm import BaseAlgorithm
 
 
@@ -23,7 +25,12 @@ class BinetAlgorithm(BaseAlgorithm):
         return self.calculator.connect_block_matrices(C11, C12, C21, C22)
 
     def run(self, A, B):
-        self.matrix_3 = self.__binet(A, B)
+        n = len(A)
+        n_ = 2 ** math.ceil(math.log(n, 2))
+        A = self.calculator.expand_matrix_to_shape(A, (n_, n_))
+        B = self.calculator.expand_matrix_to_shape(B, (n_, n_))
+        C = self.__binet(A, B)
+        self.matrix_3 = self.calculator.crop_matrix_to_shape(C, (n, n))
 
 
 

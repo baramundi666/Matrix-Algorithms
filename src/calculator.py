@@ -96,3 +96,24 @@ class Calculator:
         self.multiply_count += n * k * m
 
         return matrix
+
+    def crop_matrix_to_shape(self, matrix, shape):
+        matrix_ = [[0 for _ in range(shape[1])] for _ in range(shape[0])]
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                matrix_[i][j] = matrix[i][j]
+
+        return matrix_
+
+    def expand_matrix_to_shape(self, matrix, shape):
+        n = len(matrix)
+        m = len(matrix[0])
+        matrix_ = [[0 for _ in range(shape[1])] for _ in range(shape[0])]
+        for i in range(shape[0]):
+            for j in range(shape[1]):
+                if i < n and j < m:
+                    matrix_[i][j] = matrix[i][j]
+                else:
+                    matrix_[i][j] = 0
+
+        return matrix_
