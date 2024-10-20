@@ -82,3 +82,17 @@ class Calculator:
                 elif i >= n and j >= n:
                     matrix[i][j] = matrix_22[i - n][j - n]
         return matrix
+
+    def standard_matrix_multiplication(self, matrix_1, matrix_2):
+        assert len(matrix_1[0]) == len(matrix_2), "Wrong shapes"
+        n = len(matrix_1)
+        k = len(matrix_1[0])
+        m = len(matrix_2[0])
+        matrix = [[0 for _ in range(m)] for _ in range(n)]
+        for i in range(n):
+            for j in range(m):
+                matrix[i][j] = sum(matrix_1[i][s] * matrix_2[s][j] for s in range(k))
+        self.add_count += n * (k-1) * m
+        self.multiply_count += n * k * m
+
+        return matrix
