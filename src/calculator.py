@@ -89,6 +89,40 @@ class Calculator:
                     matrix[i][j] = matrix_22[i - n][j - n]
         return matrix
 
+    def split_into_block_matrices_dynamic_peeling(self, matrix):
+        n = len(matrix)
+        matrix_11 = [[0 for _ in range(n-1)] for _ in range(n-1)]
+        matrix_12 = [[0 for _ in range(1)] for _ in range(n-1)]
+        matrix_21 = [[0 for _ in range(n-1)] for _ in range(1)]
+        matrix_22 = [[0 for _ in range(1)] for _ in range(1)]
+        for i in range(n):
+            for j in range(n):
+                if i < n-1 and j < n-1:
+                    matrix_11[i][j] = matrix[i][j]
+                elif i < n-1 and j >= n-1:
+                    matrix_12[i][j - n + 1] = matrix[i][j]
+                elif i >= n-1 and j < n-1:
+                    matrix_21[i - n + 1][j] = matrix[i][j]
+                elif i >= n-1 and j >= n-1:
+                    matrix_22[i - n + 1][j - n + 1] = matrix[i][j]
+        return matrix_11, matrix_12, matrix_21, matrix_22
+
+    def connect_block_matrices_dynamic_peeling(self, matrix_11, matrix_12, matrix_21, matrix_22):
+        n = len(matrix_11)
+        matrix = [[0 for _ in range(n+1)] for _ in range(n+1)]
+        for i in range(n+1):
+            for j in range(n+1):
+                if i < n and j < n:
+                    matrix[i][j] = matrix_11[i][j]
+                elif i < n and j >= n:
+                    matrix[i][j] = matrix_12[i][j - n]
+                elif i >= n and j < n:
+                    matrix[i][j] = matrix_21[i - n][j]
+                elif i >= n and j >= n:
+                    matrix[i][j] = matrix_22[i - n][j - n]
+        return matrix
+
+
     def standard_matrix_multiplication(self, matrix_1, matrix_2):
         assert len(matrix_1[0]) == len(matrix_2), "Wrong shapes"
         n = len(matrix_1)
@@ -104,11 +138,7 @@ class Calculator:
         return matrix
 
     def crop_matrix_to_shape(self, matrix, shape):
-        matrix_ = [[0 for _ in range(shape[1])] for _ in range(shape[0])]
-        for i in range(shape[0]):
-            for j in range(shape[1]):
-                matrix_[i][j] = matrix[i][j]
-
+        matrix_ = [[matrix[i][j] for j in range(shape[1])] for i in range(shape[0])]
         return matrix_
 
     def expand_matrix_to_shape(self, matrix, shape):
