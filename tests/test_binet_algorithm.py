@@ -11,10 +11,10 @@ class TestBinetAlgorithm(BaseAlgorithmTest):
         super().__init__()
         self.algorithm = BinetAlgorithm()
         self.data = {}
-        self.n = 300
+        self.n = 1000
 
     def run(self):
-        range_ = range(151, self.n+1, 5)
+        range_ = range(800, self.n+1, 100)
         for test_size in range_:
             self.generate_data(test_size)
             time = self._run_time_test(f"{test_size} x {test_size}", self.matrix_1, self.matrix_2)
