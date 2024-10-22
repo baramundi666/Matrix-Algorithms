@@ -8,7 +8,7 @@ from tests.test_strassen_algorithm import TestStrassenAlgorithm
 
 
 def main():
-    test = TestBinetAlgorithm()
+    test = TestStrassenAlgorithm()
     test.run()
     write_data_to_file(test.data, f"{test.algorithm}-n{test.n}-")
 

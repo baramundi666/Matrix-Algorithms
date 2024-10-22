@@ -10,19 +10,20 @@
 ## Spis treści
 1. [Polecenie](#polecenie)
 2. [Algorytm Binet’a](#binet)
-    2.1 [Opis algorytmu](#binet_opis)
-    2.2. [Pseudokod](#binet_pseudo)
-    2.3. [Fragment kodu](#binet_fragment)
+	1. [Opis algorytmu](#binet_opis)
+    2. [Pseudokod](#binet_pseudo)
+    3. [Fragment kodu](#binet_fragment)
 3. [Algorytm Strassen’a](#strassen)
-    3.1. [Opis algorytmu](#strassen_opis)
-    3.2. [Pseudokod](#strassen_pseudo)
-    3.3. [Fragment kodu](#strassen_fragment)
+    1. [Opis algorytmu](#strassen_opis)
+    2. [Pseudokod](#strassen_pseudo)
+    3. [Fragment kodu](#strassen_fragment)
 4. [Algorytm zaproponowany przez sztuczną inteligencję](#ai)
-    4.1. [Opis algorytmu](#ai_opis)
-    4.2. [Pseudokod](#ai_pseudo)
-    4.3. [Fragment kodu](#ai_fragment)
+    1. [Opis algorytmu](#ai_opis)
+    2. [Pseudokod](#ai_pseudo)
+    3. [Fragment kodu](#ai_fragment)
 5. [Wykresy](#wykresy)
 6. [Szacowanie złożoności obliczeniowej](#complexity)
+7. [Porównanie wyników z Matlabem](#matlab)
 7. [Wnioski](#wnioski)
 8. [Bibliografia](#biblio)
 
@@ -30,9 +31,9 @@
 ## 1. Polecenie <a name="polecenie"></a>
 
 Proszę wybrać ulubiony język programowania, wygenerować macierze losowe o wartościach z przedziału otwartego (0.00000001, 1.0) i zaimplementować:
-- Rekurencyjne mnożenie macierzy metodą Binét’a 
-- Rekurencyjne mnożenie macierzy metodą Strassena 
-- Mnożenie macierzy metodą AI na podstawie artykułu w Nature 
+- Rekurencyjne mnożenie macierzy metodą *Binét*’a 
+- Rekurencyjne mnożenie macierzy metodą *Strassen*'a 
+- Mnożenie macierzy metodą AI na podstawie artykułu w *Nature* 
 
 Proszę zliczać liczbę operacji zmiennoprzecinkowych (+-*/ liczb) wykonywanych podczas mnożenia macierzy.
 
@@ -41,20 +42,29 @@ Proszę zliczać liczbę operacji zmiennoprzecinkowych (+-*/ liczb) wykonywanych
 ### 2.1 Opis algorytmu  <a name="binet_opis"></a>
 
 Zakładamy, że mamy dwie macierze A i B o wymiarach n x n. 
-Chcemy wyznaczyć macierz C, będącą iloczynem macierzy A i B, czyli C = A ׁᐧ B. Algorytm Binet’a polega na rozbiciu macierzy na mniejsze bloki, a następnie mnożeniu tych bloków i sumowaniu ich zgodnie z zasadami mnożenia macierzy. Po wykonaniu obliczeń dla wszystkich bloków, wyniki są łączone w macierz C. W naszej implementacji wykorzystujemy mechanizm *dynamic peeling*:
+Chcemy wyznaczyć macierz C, będącą iloczynem macierzy A i B, czyli C = A ׁᐧ B. Algorytm Binet’a polega na rozbiciu macierzy na mniejsze bloki, a następnie mnożeniu tych bloków i sumowaniu ich zgodnie z zasadami mnożenia macierzy. Po wykonaniu obliczeń dla wszystkich bloków, wyniki są łączone w macierz C. 
+W naszej implementacji wykorzystujemy mechanizm *dynamic peeling*:
 ![dynamic_peeling](figures/dynamic_peeling.png)
 
 
 ### 2.2 Pseudokod  <a name="binet_pseudo"></a>
-# TODO : correct pseudocode
-		binet(A, B)
-			Jeśli macierze A i B mają rozmiar 1
-				zwróć wynik A * B 
 
-			W przeciwnym przypadku: 
+		binet(A, B)
+			Jeśli macierz A ma rozmiar 1
+				zwróć wynik A * B 
+            Jeśli rozmiar macierzy A jest nieparzysty
+                wykonaj podział macierzy A i B na podmacierze dynamiczne A11, A12, A21, A22 oraz B11, B12, B21, B22 o rozmiarach (n-1) x (n-1), (n-1) x 1, 1 x (n-1), 1 x 1 odpowiednio, gdzie n to rozmiar macierzy A i B
+                oblicz pomocnicze macierze:
+                    C11 = Binet(A11, B11) + standardowe_mnożenie_macierzy(A12, B21)
+                    C12 = standardowe_mnożenie_macierzy(A11, B12) + standardowe_mnożenie_macierzy(A12, B22)
+                    C21 = dodaj(standardowe_mnożenie_macierzy(A21, B11) + standardowe_mnożenie_macierzy(A22, B21)
+                    C22 = dodaj(standardowe_mnożenie_macierzy(A21, B12) + standardowe_mnożenie_macierzy(A22, B22)
+                zwróć połączone macierze C11, C12, C21, C22
+
+			W przeciwnym przypadku (n jest parzyste): 
 				wykonaj podział macierzy A i B na równe 4 bloki: A11, A12, A21, A22 oraz B11, B12, B21, B22
 
-				wykonaj mnożenie bloków i dodawanie wyników
+				oblicz pomocnicze macierze:
 				C11 = binet(A11, B11) + binet(A12, B21) 
 				C12 = binet(A11, B12) + binet(A12, B22) 
 				C21 = binet(A21, B11) + binet(A22, B21) 
@@ -333,23 +343,62 @@ def recursive_ai_rec(self, a, b):
 
 ## 5. Wykresy <a name="wykresy"></a>
 
-# TODO
+![binet_time](figures/binet_time.png)
+
+![binet_flops](figures/binet_flops.png)
+
+![strassen_time](figures/strassen_time.png)
+
+![strassen_flops](figures/strassen_flops.png)
+
+![comparison_time](figures/comparison_time.png)
+
+![comparison_flops](figures/comparison_flops.png)
 
 ## 6. Szacowanie złożoności obliczeniowej  <a name="complexity"></a>
-Szacowana złożoność obliczeniowa rekurencyjnego algorytmu mnożenia macierzy Bineta wynosi $O(n^3)$, ponieważ każde mnożenie bloków wymaga 8 rekurencyjnych mnożeń mniejszych macierzy. W wyniku rekurencji, rozmiar macierzy jest zmniejszany o połowę (do $\frac{n}{2}$) na każdym poziomie. Liczba poziomów rekurencji wynosi $\log(n)$ Dlatego całkowita liczba operacji mnożenia to $8^{\log_2(n)}$ , co upraszcza się do $O(n^3)$. 
+Szacowana złożoność obliczeniowa rekurencyjnego algorytmu mnożenia macierzy Bineta wynosi *O(n<sup>3</sup>)*, ponieważ każde mnożenie bloków wymaga 8 rekurencyjnych mnożeń mniejszych macierzy. W wyniku rekurencji, rozmiar macierzy jest zmniejszany o połowę (do *n/2*) na każdym poziomie. Liczba poziomów rekurencji wynosi *log<sub>2</sub>n* Dlatego całkowita liczba operacji mnożenia to *8<sup>log<sub>2</sub>n</sup>)* , co upraszcza się do *O(n<sup>3</sup>)*. 
 W przypadku algorytmu Strassena liczba mnożeń na każdym poziomie rekurencji została zredukowana do 7 zamiast 8, co prowadzi do złożoności 
-$O(n^{log_2(7)})$, czyli około $O(n^{2.81})$. 
-Złożoność algorytmu AI będzie mieściła się w przedziale między $O(n^3)$ a $O(n^{2.81})$, bliżej dolnej granicy dzięki wykorzystaniu bloków o określonych rozmiarach i optymalizacji operacji na blokach.
+*O(n<sup>log<sub>2</sub>7</sup>)*, czyli około *O(n<sup>2.81</sup>)*. 
+Złożoność algorytmu AI będzie mieściła się w przedziale między *O(n<sup>3</sup>)* a *O(n<sup>2.81</sup>)*, bliżej dolnej granicy dzięki wykorzystaniu bloków o określonych rozmiarach i optymalizacji operacji na blokach.
  
+## 7. Porównanie wyników z Matlabem <a name="matlab"></a>
+
+Aby zweryfikować poprawność zaimplementowanych algorytmów, porównaliśmy wyniki mnożenia dwóch macierzy w środowisku Matlab z wynikami uzyskanymi przy użyciu implementacji algorytmu Binet'a i Strassen'a. 
+
+
+Porównanie pozwoliło upewnić się, że zaimplementowane algorytmy dają poprawne wyniki, zgodne z otrzymanymi w Matlabie. Dodatkowo, po sprawdzeniu czasu wykonania, okazało się, że mnożenie macierzy w Matlabie działa szybciej w porównaniu z naszymi implementacjami. 
+
+```matlab
+A = [0.1, 0.7, 0.2, 0.9;
+    0.1, 0.5, 0.2, 0.7;
+    0.9, 0.3, 0.5, 0.6;
+    0.4, 0.6, 0.2, 0.9];
+
+
+B = [0.2, 0.1, 0.8, 0.3;
+    0.3, 0.9, 0.4, 0.7;
+    0.5, 0.3, 0.1, 0.7;
+    0.1, 0.6, 0.4, 0.8];
+
+tic; 
+C = A * B;
+czasWykonania = toc;
+
+disp('Wynik mnożenia macierzy A i B:');
+disp(C);
+
+disp(['Czas wykonywania mnożenia: ', num2str(czasWykonania), ' sekund']);
+```
 
 
 	
-## 7. Wnioski  <a name="wnioski"></a>
-- Algorytm Strassena jest lepszy pod względem wydajności niż klasyczny algorytm Bineta
+## 8. Wnioski  <a name="wnioski"></a>
+- Nasza implementacja algorytmu Strassena okazała się być gorsza pod względem wydajnościowym niż nasza implementacja algorytmu Bineta
 - Klasyczny algorytm Bineta jest najprostszy, ale przy dużych macierzach jest niepraktyczny
 - Algorytm stworzony przez sztuczną inteligencję posiada optymalizacje, takie jak dzielenie macierzy na bloki i skalowanie ich, aby dopasować ich rozmiar do efektywnych operacji blokowych
+- Przy większych macierzach rekurencyjne podejście może znacząco spowolnić obliczenia, w praktyce, kroki rekurencyjne wykorzystuje się tylko do pewnego opłacalnego pułapu, a dalej korzysta się z prostszych algorytmów mnożenia macierzy.
 
-## 8. Bibliografia  <a name="biblio"></a>
+## 9. Bibliografia  <a name="biblio"></a>
 - Wykłady prof. dr hab. Macieja Paszyńskiego (https://home.agh.edu.pl/~paszynsk/RM/RachunekMacierzowy1.pdf)
 - https://www.researchgate.net/publication/2779622_Implementation_of_Strassen's_Algorithm_for_Matrix_Multiplication
 - https://deepmind.google/discover/blog/discovering-novel-algorithms-with-alphatensor/#:~:text=In%20our%20paper,%20published%20today%20in%20Nature,%20we

@@ -9,11 +9,11 @@ class TestStrassenAlgorithm(BaseAlgorithmTest):
         super().__init__()
         self.algorithm = StrassenAlgorithm()
         self.data = {}
-        self.n = 10
+        self.n = 1000
 
     def run(self):
-        range_ = range(1, self.n)
-        for test_size in range_:
+        # range_ = range(300, self.n+1, 50)
+        for test_size in [1000]:
             self.generate_data(test_size)
             time = self._run_time_test(f"{test_size} x {test_size}", self.matrix_1, self.matrix_2)
             flop = self._extract_calculator_data()
