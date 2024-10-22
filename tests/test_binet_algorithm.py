@@ -1,4 +1,5 @@
 from random import uniform
+import matplotlib.pyplot as plt
 
 from src.algorithms.binet_algorithm import BinetAlgorithm
 from tests.base_algorithm_test import BaseAlgorithmTest
@@ -9,12 +10,17 @@ class TestBinetAlgorithm(BaseAlgorithmTest):
     def __init__(self):
         super().__init__()
         self.algorithm = BinetAlgorithm()
+        self.data = {}
+        self.n = 1000
 
     def run(self):
-        for test_size in [2**k for k in range(1, 5)]:
+        range_ = range(800, self.n+1, 100)
+        for test_size in range_:
             self.generate_data(test_size)
-            self._run_time_test(f"{test_size} x {test_size}", self.matrix_1, self.matrix_2)
-            self._extract_calculator_data()
+            time = self._run_time_test(f"{test_size} x {test_size}", self.matrix_1, self.matrix_2)
+            flop = self._extract_calculator_data()
+            self.data[test_size] = {"time": time,
+                                    "flop": flop}
             assert_matrix_multiplication_is_correct(self.matrix_1, self.matrix_2, self.algorithm.matrix_3)
 
     @classmethod

@@ -19,14 +19,19 @@ class BaseAlgorithmTest:
         self.algorithm.run(*args)
         # time end
         end = timer()
-        print(f"Time: {timedelta(seconds=end - start)}")
+        time_elapsed = end - start
+        print(f"Time: {timedelta(seconds=time_elapsed)}")
+        return time_elapsed
+
 
     def _extract_calculator_data(self):
         print(f"Atomic additions: {self.algorithm.calculator.add_count}")
         print(f"Atomic subtractions: {self.algorithm.calculator.subtract_count}")
         print(f"Atomic negations: {self.algorithm.calculator.negate_count}")
         print(f"Atomic multiplications: {self.algorithm.calculator.multiply_count}")
+        total_count = self.algorithm.calculator.total_count
         self.algorithm.calculator.reset_counters()
+        return total_count
 
     @classmethod
     def generate_data(cls, *args):
