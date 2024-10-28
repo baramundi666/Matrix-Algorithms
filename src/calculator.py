@@ -5,6 +5,7 @@ class Calculator:
         self.subtract_count = 0
         self.negate_count = 0
         self.multiply_count = 0
+        self.divide_count = 0
 
     def reset_counters(self):
         self.total_count = 0
@@ -51,10 +52,16 @@ class Calculator:
 
     def multiply_one_by_one_matrices(self, matrix_1, matrix_2):
         # atomic multiplication
+        # print(f"Multiplying {matrix_1[0][0]} * {matrix_2[0][0]}")
         self.total_count += 1
         self.multiply_count += 1
         matrix_3 = [[matrix_1[0][0] * matrix_2[0][0]]]
         return matrix_3
+
+    def inverse_one_by_one_matrix(self, matrix):
+        self.total_count += 1
+        self.divide_count += 1
+        return [[1 / matrix[0][0]]]
 
     def split_into_block_matrices(self, matrix):
         n = len(matrix)
@@ -153,3 +160,14 @@ class Calculator:
                     matrix_[i][j] = 0
 
         return matrix_
+
+    def __add__(self, other):
+        assert isinstance(other, Calculator)
+        new = Calculator()
+        new.total_count = self.total_count + other.total_count
+        new.add_count = self.add_count + other.add_count
+        new.subtract_count = self.subtract_count + other.subtract_count
+        new.negate_count = self.negate_count + other.negate_count
+        new.multiply_count = self.multiply_count + other.multiply_count
+        new.divide_count = self.divide_count + other.divide_count
+        return new

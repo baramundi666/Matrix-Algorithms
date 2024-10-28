@@ -15,7 +15,7 @@ class TestBinetAlgorithm(BaseAlgorithmTest):
 
     def run(self):
         range_ = range(800, self.n+1, 100)
-        for test_size in range_:
+        for test_size in range(300, 600, 50):
             self.generate_data(test_size)
             time = self._run_time_test(f"{test_size} x {test_size}", self.matrix_1, self.matrix_2)
             flop = self._extract_calculator_data()

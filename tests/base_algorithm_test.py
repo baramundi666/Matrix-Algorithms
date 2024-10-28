@@ -29,6 +29,7 @@ class BaseAlgorithmTest:
         print(f"Atomic subtractions: {self.algorithm.calculator.subtract_count}")
         print(f"Atomic negations: {self.algorithm.calculator.negate_count}")
         print(f"Atomic multiplications: {self.algorithm.calculator.multiply_count}")
+        print(f"Atomic divisions: {self.algorithm.calculator.divide_count}")
         total_count = self.algorithm.calculator.total_count
         self.algorithm.calculator.reset_counters()
         return total_count
