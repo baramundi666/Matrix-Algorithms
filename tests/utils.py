@@ -33,10 +33,19 @@ def assert_matrix_inversion(matrix, inverse_matrix, epsilon=1e-1):
     print("Matrix inversion was successful!")
 
 
-def assert_lu_factorization_is_correct(matrix, L, U, epsilon=1e-1):
+def assert_lu_factorization_is_correct(matrix, L, U, epsilon=1e-9):
     matrix_np = np.array(matrix)
     L_np = np.array(L)
     U_np = np.array(U)
     product_matrix = np.dot(L_np, U_np)
-    assert np.allclose(product_matrix, matrix_np, atol=epsilon, rtol=1e-1), f"LU factorization wasn't successful: "
+    assert np.allclose(product_matrix, matrix_np, atol=epsilon, rtol=1e-9), f"LU factorization wasn't successful: "
     print("LU factorization was successful!")
+
+def assert_gauss_elimination_is_correct(expected_A, expected_b, A, b):
+    epsilon = 1e-9
+    n = len(A)
+    expected_x = np.linalg.solve(expected_A, expected_b)
+    x = np.linalg.solve(A, b)
+    for i in range(n):
+            assert abs(x[i, 0] - expected_x[i, 0]) < epsilon, f"Error!"
+    print("Success!")

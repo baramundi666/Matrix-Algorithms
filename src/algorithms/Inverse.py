@@ -1,9 +1,12 @@
+from src.base_algorithm import BaseAlgorithm
 from src.calculator import Calculator
 from src.algorithms.strassen_algorithm import StrassenAlgorithm
 import numpy as np
 
-class Inversion:
+class Inversion(BaseAlgorithm):
     def __init__(self):
+        super().__init__()
+        self.matrix_3 = None
         self.calculator = Calculator()
         self.strassen = StrassenAlgorithm()
 

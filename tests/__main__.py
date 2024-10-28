@@ -3,6 +3,7 @@ import pandas as pd
 
 from tests.test_ai_algorithm import TestAIAlgorithm
 from tests.test_binet_algorithm import TestBinetAlgorithm
+from tests.test_gauss_algorithm import TestGaussAlgorithm
 from tests.test_strassen_algorithm import TestStrassenAlgorithm
 from tests.test_inversion import TestInversion
 from tests.test_lu import TestLU
@@ -10,7 +11,7 @@ from tests.test_lu import TestLU
 
 
 def main():
-    test = TestLU()
+    test = TestGaussAlgorithm()
     test.run()
     # write_data_to_file(test.data, f"{test.algorithm}-n{test.n}-")
 

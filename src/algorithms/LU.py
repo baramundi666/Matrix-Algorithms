@@ -1,11 +1,12 @@
+from src.base_algorithm import BaseAlgorithm
 from src.calculator import Calculator
 from src.algorithms.strassen_algorithm import StrassenAlgorithm
 from src.algorithms.Inverse import Inversion
 
 
-class LUFactorization:
+class LUFactorization(BaseAlgorithm):
     def __init__(self):
-        self.calculator = Calculator()
+        super().__init__()
         self.strassen = StrassenAlgorithm()
         self.inversion = Inversion()
 
@@ -47,7 +48,6 @@ class LUFactorization:
         return L, U
 
     def run(self, matrix):
-
         self.L, self.U = self.lu(matrix)
 
 
