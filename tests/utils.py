@@ -47,5 +47,7 @@ def assert_gauss_elimination_is_correct(expected_A, expected_b, A, b):
     expected_x = np.linalg.solve(expected_A, expected_b)
     x = np.linalg.solve(A, b)
     for i in range(n):
-            assert abs(x[i, 0] - expected_x[i, 0]) < epsilon, f"Error!"
+        for j in range(i-1, -1, -1):
+            assert abs(A[i, j]) < epsilon, f"Error: A[{i}, {j}] = {A[i, j]} != 0"
+        assert abs(x[i, 0] - expected_x[i, 0]) < epsilon, f"Error: x[{i}, 0] = {x[i, 0]} != expected_x[{i}, 0] = {expected_x[i, 0]}"
     print("Success!")

@@ -3,6 +3,7 @@ import scipy
 
 from src.algorithms.Inverse import Inversion
 from src.algorithms.LU import LUFactorization
+from src.algorithms.binet_algorithm import BinetAlgorithm
 from src.base_algorithm import BaseAlgorithm
 
 
@@ -11,16 +12,20 @@ class GaussAlgorithm(BaseAlgorithm):
         super().__init__()
         self.A = None
         self.b = None
-        self.lu_algorithm = LUFactorization()
-        self.inv_algorithm = Inversion()
+        self.lu = LUFactorization()
+        self.inv = Inversion()
+        binet = BinetAlgorithm()
+        self.mul = binet.mul
+        self.calcs = (binet.calc, self.lu.calc, self.inv.calc)
 
     def __rec(self, A, b):
         n = len(A)
         if n == 1:
             return A, b
 
-        A_11, A_12, A_21, A_22 = A[:n // 2, :n // 2], A[:n // 2, n // 2:], A[n // 2:, :n // 2], A[n // 2:, n // 2:]
-        b_1, b_2 = b[:n // 2], b[n // 2:]
+        n_half = n // 2
+        A_11, A_12, A_21, A_22 = self.calc.split_into_block_matrices(A)
+        b_1, b_2 = self.calc.split_into_block_vectors(b)
 
         # L_11, U_11 = self.lu_algorithm.lu(A_11)
         L_11, U_11 = scipy.linalg.lu(A_11, permute_l=True)
@@ -31,24 +36,24 @@ class GaussAlgorithm(BaseAlgorithm):
         L_11_inv = np.linalg.inv(L_11)
         U_11_inv = np.linalg.inv(U_11)
 
-        tmp = A_21 @ U_11_inv @ L_11_inv
-        S = A_22 - tmp @ A_12
+        tmp = self.mul(self.mul(A_21, U_11_inv), L_11_inv)
+        S = self.calc.subtract(A_22, self.mul(tmp, A_12))
 
-        b_1_new = L_11_inv @ b_1
-        b_2_new = b_2 - tmp @ b_1
+        b_1_new = self.mul(L_11_inv, b_1)
+        b_2_new = self.calc.subtract(b_2, self.mul(tmp, b_1))
 
         A_11_new = U_11
-        A_12_new = L_11_inv @ A_12
-        A_21_new = np.zeros((n // 2, n // 2))
+        A_12_new = self.mul(L_11_inv, A_12)
+        A_21_new = np.zeros((n-n_half, n_half))
         A_22_new, b_2_new = self.__rec(S, b_2_new)
 
-        top = np.hstack((A_11_new, A_12_new))
-        bottom = np.hstack((A_21_new, A_22_new))
-        A_new = np.vstack((top, bottom))
-        b_new = np.vstack((b_1_new, b_2_new))
+        A_new = self.calc.connect_block_matrices(A_11_new, A_12_new, A_21_new, A_22_new)
+        b_new = self.calc.connect_block_vectors(b_1_new, b_2_new)
 
         return A_new, b_new
 
 
     def run(self, A, b):
         self.A, self.b = self.__rec(A, b)
+        for calc in self.calcs:
+            self.calc += calc

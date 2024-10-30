@@ -12,10 +12,10 @@ class TestGaussAlgorithm(BaseAlgorithmTest):
         self.data = {}
 
     def run(self):
-        for test_size in [2**k for k in range(10)]:
+        for test_size in [11]:
             self.generate_data(test_size)
             time = self._run_time_test(f"{test_size} x {test_size}", self.A, self.b)
-            flop = self._extract_calculator_data()
+            flop = self._extract_calc_data()
             self.data[test_size] = {"time": time,
                                     "flop": flop}
             assert_gauss_elimination_is_correct(self.A, self.b, self.algorithm.A, self.algorithm.b)

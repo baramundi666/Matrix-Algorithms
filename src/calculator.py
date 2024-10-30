@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class Calculator:
     def __init__(self):
         self.total_count = 0
@@ -17,117 +20,60 @@ class Calculator:
     def add(self, matrix_1, matrix_2):
         n = len(matrix_1)
         m = len(matrix_1[0])
-        matrix_3 = [[0 for _ in range(m)] for _ in range(n)]
-        for i in range(n):
-            for j in range(m):
-                # atomic addition
-                self.total_count += 1
-                self.add_count += 1
-                matrix_3[i][j] = matrix_1[i][j] + matrix_2[i][j]
-        return matrix_3
+        self.total_count += n * m
+        self.add_count += n * m
+        return matrix_1 + matrix_2
 
     def subtract(self, matrix_1, matrix_2):
         n = len(matrix_1)
         m = len(matrix_1[0])
-        matrix_3 = [[0 for _ in range(m)] for _ in range(n)]
-        for i in range(n):
-            for j in range(m):
-                # atomic subtraction
-                self.total_count += 1
-                self.subtract_count += 1
-                matrix_3[i][j] = matrix_1[i][j] - matrix_2[i][j]
-        return matrix_3
+        self.total_count += n * m
+        self.subtract_count += n * m
+        return matrix_1 - matrix_2
 
     def negate(self, matrix):
         n = len(matrix)
         m = len(matrix[0])
-        matrix_ = [[0 for _ in range(m)] for _ in range(n)]
-        for i in range(n):
-            for j in range(m):
-                # atomic negation
-                self.total_count += 1
-                self.negate_count += 1
-                matrix_[i][j] = -matrix[i][j]
-        return matrix_
-
-    def multiply_one_by_one_matrices(self, matrix_1, matrix_2):
-        # atomic multiplication
-        # print(f"Multiplying {matrix_1[0][0]} * {matrix_2[0][0]}")
-        self.total_count += 1
-        self.multiply_count += 1
-        matrix_3 = [[matrix_1[0][0] * matrix_2[0][0]]]
-        return matrix_3
+        self.total_count += n * m
+        self.subtract_count += n * m
+        return -matrix
 
     def inverse_one_by_one_matrix(self, matrix):
         self.total_count += 1
         self.divide_count += 1
-        return [[1 / matrix[0][0]]]
+        return 1 / matrix
 
-    def split_into_block_matrices(self, matrix):
-        n = len(matrix)
-        matrix_11 = [[0 for _ in range(n // 2)] for _ in range(n // 2)]
-        matrix_12 = [[0 for _ in range(n // 2)] for _ in range(n // 2)]
-        matrix_21 = [[0 for _ in range(n // 2)] for _ in range(n // 2)]
-        matrix_22 = [[0 for _ in range(n // 2)] for _ in range(n // 2)]
-        for i in range(n):
-            for j in range(n):
-                if i < n // 2 and j < n // 2:
-                    matrix_11[i][j] = matrix[i][j]
-                elif i < n // 2 and j >= n // 2:
-                    matrix_12[i][j - n // 2] = matrix[i][j]
-                elif i >= n // 2 and j < n // 2:
-                    matrix_21[i - n // 2][j] = matrix[i][j]
-                elif i >= n // 2 and j >= n // 2:
-                    matrix_22[i - n // 2][j - n // 2] = matrix[i][j]
-        return matrix_11, matrix_12, matrix_21, matrix_22
+    def split_into_block_matrices(self, A):
+        n = len(A)
+        n_half = n // 2
+        A_11, A_12, A_21, A_22 = (A[:n_half, :n_half], A[:n_half, n_half:],
+                                  A[n_half:, :n_half], A[n_half:, n_half:])
+        return A_11, A_12, A_21, A_22
 
-    def connect_block_matrices(self, matrix_11, matrix_12, matrix_21, matrix_22):
-        n = len(matrix_11)
-        matrix = [[0 for _ in range(2 * n)] for _ in range(2 * n)]
-        for i in range(2 * n):
-            for j in range(2 * n):
-                if i < n and j < n:
-                    matrix[i][j] = matrix_11[i][j]
-                elif i < n and j >= n:
-                    matrix[i][j] = matrix_12[i][j - n]
-                elif i >= n and j < n:
-                    matrix[i][j] = matrix_21[i - n][j]
-                elif i >= n and j >= n:
-                    matrix[i][j] = matrix_22[i - n][j - n]
-        return matrix
+    def split_into_block_vectors(self, b):
+        n = len(b)
+        n_half = n // 2
+        b_1, b_2 = b[:n_half], b[n_half:]
+        return b_1, b_2
 
-    def split_into_block_matrices_dynamic_peeling(self, matrix):
-        n = len(matrix)
-        matrix_11 = [[0 for _ in range(n-1)] for _ in range(n-1)]
-        matrix_12 = [[0 for _ in range(1)] for _ in range(n-1)]
-        matrix_21 = [[0 for _ in range(n-1)] for _ in range(1)]
-        matrix_22 = [[0 for _ in range(1)] for _ in range(1)]
-        for i in range(n):
-            for j in range(n):
-                if i < n-1 and j < n-1:
-                    matrix_11[i][j] = matrix[i][j]
-                elif i < n-1 and j >= n-1:
-                    matrix_12[i][j - n + 1] = matrix[i][j]
-                elif i >= n-1 and j < n-1:
-                    matrix_21[i - n + 1][j] = matrix[i][j]
-                elif i >= n-1 and j >= n-1:
-                    matrix_22[i - n + 1][j - n + 1] = matrix[i][j]
-        return matrix_11, matrix_12, matrix_21, matrix_22
+    def connect_block_matrices(self, A_11, A_12, A_21, A_22):
+        top = np.concatenate((A_11, A_12), axis=1)
+        bottom = np.concatenate((A_21, A_22), axis=1)
+        A = np.concatenate((top, bottom), axis=0)
+        return A
+
+    def connect_block_vectors(self, b_1, b_2):
+        b = np.concatenate((b_1, b_2), axis=0)
+        return b
+
+    def split_into_block_matrices_dynamic_peeling(self, A):
+        n = len(A)
+        A_11, A_12, A_21, A_22 = (A[:n-1, :n-1], A[:n-1, n-1:],
+                                  A[n-1:, :n-1], A[n-1:, n-1:])
+        return A_11, A_12, A_21, A_22
 
     def connect_block_matrices_dynamic_peeling(self, matrix_11, matrix_12, matrix_21, matrix_22):
-        n = len(matrix_11)
-        matrix = [[0 for _ in range(n+1)] for _ in range(n+1)]
-        for i in range(n+1):
-            for j in range(n+1):
-                if i < n and j < n:
-                    matrix[i][j] = matrix_11[i][j]
-                elif i < n and j >= n:
-                    matrix[i][j] = matrix_12[i][j - n]
-                elif i >= n and j < n:
-                    matrix[i][j] = matrix_21[i - n][j]
-                elif i >= n and j >= n:
-                    matrix[i][j] = matrix_22[i - n][j - n]
-        return matrix
+        return self.connect_block_matrices(matrix_11, matrix_12, matrix_21, matrix_22)
 
 
     def standard_matrix_multiplication(self, matrix_1, matrix_2):
@@ -138,28 +84,19 @@ class Calculator:
         matrix = [[0 for _ in range(m)] for _ in range(n)]
         for i in range(n):
             for j in range(m):
-                matrix[i][j] = sum(matrix_1[i][s] * matrix_2[s][j] for s in range(k))
+                matrix[i][j] = np.sum(matrix_1[i, :] * matrix_2[:, j])
         self.add_count += n * (k-1) * m
         self.multiply_count += n * k * m
 
-        return matrix
+        return np.array(matrix)
 
     def crop_matrix_to_shape(self, matrix, shape):
-        matrix_ = [[matrix[i][j] for j in range(shape[1])] for i in range(shape[0])]
-        return matrix_
+        return matrix[:shape[0], :shape[1]]
 
-    def expand_matrix_to_shape(self, matrix, shape):
-        n = len(matrix)
-        m = len(matrix[0])
-        matrix_ = [[0 for _ in range(shape[1])] for _ in range(shape[0])]
-        for i in range(shape[0]):
-            for j in range(shape[1]):
-                if i < n and j < m:
-                    matrix_[i][j] = matrix[i][j]
-                else:
-                    matrix_[i][j] = 0
-
-        return matrix_
+    def expand_matrix_to_shape(self, A, shape):
+        n = len(A)
+        m = len(A[0])
+        return np.pad(A, ((0, shape[0] - n), (0, shape[1] - m)), mode='constant')
 
     def __add__(self, other):
         assert isinstance(other, Calculator)
