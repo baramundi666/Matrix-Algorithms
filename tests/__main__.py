@@ -12,9 +12,9 @@ from tests.test_lu import TestLU
 def main():
     test = TestLU()
     test.run()
-    # write_data_to_file(test.data, f"{test.algorithm}-n{test.n}-")
-
-
+#     write_data_to_file(test.data, f"{test.algorithm}-n{test.n}-")
+#
+#
 # def write_data_to_file(data, name):
 #     df = pd.DataFrame(data=data, index=["time", "flop"])
 #     time_snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")

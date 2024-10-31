@@ -25,13 +25,13 @@ class BaseAlgorithmTest:
 
 
     def _extract_calculator_data(self):
-        print(f"Atomic additions: {self.algorithm.calculator.add_count}")
-        print(f"Atomic subtractions: {self.algorithm.calculator.subtract_count}")
-        print(f"Atomic negations: {self.algorithm.calculator.negate_count}")
-        print(f"Atomic multiplications: {self.algorithm.calculator.multiply_count}")
-        print(f"Atomic divisions: {self.algorithm.calculator.divide_count}")
-        total_count = self.algorithm.calculator.total_count
-        self.algorithm.calculator.reset_counters()
+        print(f"Atomic additions: {self.algorithm.calc.add_count}")
+        print(f"Atomic subtractions: {self.algorithm.calc.subtract_count}")
+        print(f"Atomic negations: {self.algorithm.calc.negate_count}")
+        print(f"Atomic multiplications: {self.algorithm.calc.multiply_count}")
+        print(f"Atomic divisions: {self.algorithm.calc.divide_count}")
+        total_count = self.algorithm.calc.total_count
+        self.algorithm.calc.reset_counters()
         return total_count
 
     @classmethod
