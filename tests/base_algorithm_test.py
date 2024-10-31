@@ -32,6 +32,7 @@ class BaseAlgorithmTest:
         print(f"Atomic divisions: {self.algorithm.calc.divide_count}")
         total_count = self.algorithm.calc.total_count
         self.algorithm.calc.reset_counters()
+        self.algorithm.reset_helper_calculators()
         return total_count
 
     @classmethod

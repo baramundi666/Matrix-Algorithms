@@ -12,12 +12,11 @@ class LUFactorization(BaseAlgorithm):
         self.inversion = Inversion()
         binet = BinetAlgorithm()
         self.mul = binet.mul
-        self.calcs = (binet.calc,  self.inversion.calc)
+        self.calcs = [binet.calc,  self.inversion.calc]
 
 
     def lu(self, matrix):
         result = self.lu_factorization(matrix)
-        #self._update_calculator()
         return result
 
     def lu_factorization(self, A):
@@ -53,12 +52,5 @@ class LUFactorization(BaseAlgorithm):
         self.L, self.U = self.lu(matrix)
         for calc in self.calcs:
             self.calc += calc
-
-
-
-    # def _update_calculator(self):
-    #     self.calc += self.mul
-    #     self.calc += self.inversion.calc
-    #     self.mul.calc.reset_counters()
 
 
