@@ -16,20 +16,21 @@ class Calculator:
         self.subtract_count = 0
         self.negate_count = 0
         self.multiply_count = 0
+        self.divide_count = 0
 
     def add(self, matrix_1, matrix_2):
-        n = len(matrix_1)
-        m = len(matrix_1[0])
+        n, m = matrix_1.shape
         self.total_count += n * m
         self.add_count += n * m
-        return matrix_1 + matrix_2
+
+        return np.add(matrix_1, matrix_2)
 
     def subtract(self, matrix_1, matrix_2):
-        n = len(matrix_1)
-        m = len(matrix_1[0])
+        n, m = matrix_1.shape
         self.total_count += n * m
         self.subtract_count += n * m
-        return matrix_1 - matrix_2
+
+        return np.subtract(matrix_1, matrix_2)
 
     def negate(self, matrix):
         n = len(matrix)
@@ -41,10 +42,10 @@ class Calculator:
     def inverse_one_by_one_matrix(self, matrix):
         self.total_count += 1
         self.divide_count += 1
-        return 1 / matrix
+        return np.array([[1 / matrix[0, 0]]])
 
     def split_into_block_matrices(self, A):
-        n = len(A)
+        n = A.shape[0]
         n_half = n // 2
         A_11, A_12, A_21, A_22 = (A[:n_half, :n_half], A[:n_half, n_half:],
                                   A[n_half:, :n_half], A[n_half:, n_half:])

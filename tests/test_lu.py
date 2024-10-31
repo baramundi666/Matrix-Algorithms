@@ -2,12 +2,14 @@ from random import uniform
 from src.algorithms.LU import LUFactorization
 from tests.base_algorithm_test import BaseAlgorithmTest
 from tests.utils import assert_lu_factorization_is_correct
+import numpy as np
 
 class TestLU(BaseAlgorithmTest):
     def __init__(self):
         super().__init__()
         self.algorithm = LUFactorization()
         self.data = {}
+        self.n = 55
 
 
 
@@ -18,16 +20,10 @@ class TestLU(BaseAlgorithmTest):
             flop = self._extract_calc_data()
             self.data[test_size] = {"time": time,
                                     "flop": flop}
-            assert_lu_factorization_is_correct(self.matrix, self.algorithm.L, self.algorithm.U)
+            assert_lu_factorization_is_correct(self.matrix_1, self.algorithm.L, self.algorithm.U)
 
     @classmethod
     def generate_data(cls, test_size):
-
-
-        cls.matrix = [[0 for _ in range(test_size)] for _ in range(test_size)]
-
-        a, b = 0.00000001, 1.0
-        for i in range(test_size):
-            for j in range(test_size):
-                cls.matrix[i][j] = uniform(a, b)
+        a, b = np.double(0.00000001), np.double(1.0)
+        cls.matrix_ = (b - a) * np.random.rand(test_size, test_size) + a
 

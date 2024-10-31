@@ -1,49 +1,42 @@
 from src.base_algorithm import BaseAlgorithm
 from src.calculator import Calculator
 from src.algorithms.strassen_algorithm import StrassenAlgorithm
+from src.algorithms.binet_algorithm import BinetAlgorithm
 import numpy as np
 
 class Inversion(BaseAlgorithm):
     def __init__(self):
         super().__init__()
-        self.matrix_3 = None
         self.calc = Calculator()
-        self.strassen = StrassenAlgorithm()
+        self.binet = BinetAlgorithm()
 
 
     def inverse(self, matrix):
-        result = self.inverse_rec(matrix)
-        self._update_calc()
+        result = self.invert(matrix)
+        self._update_calculator()
         return result
 
-    def inverse_rec(self, matrix):
-        n = len(matrix)
-        if n == 1:
-            return self.calc.inverse_one_by_one_matrix(matrix)
+    def invert(self, A):
+        if A.shape[0] == 1:
+            return self.calc.inverse_one_by_one_matrix(A)
 
-        if n % 2 != 0:
-            A11, A12, A21, A22 = self.calc.split_into_block_matrices_dynamic_peeling(matrix)
-        else:
-            A11, A12, A21, A22 = self.calc.split_into_block_matrices(matrix)
+        A11, A12, A21, A22 = self.calc.split_into_block_matrices(A)
 
-        A11_inv = self.inverse_rec(A11)
-        S22 = self.calc.subtract(A22, self.strassen.run(A21, self.strassen.run(A11_inv, A12)))
+        A11_inv = self.invert(A11)
 
-        if len(S22) == 1 and len(S22[0]) == 1:
-            S22_inv = self.calc.inverse_one_by_one_matrix(S22)
-        else:
-            S22_inv = self.inverse_rec(S22)
+        A11_inv_A12 = self.binet.mul(A11_inv, A12)
+        A21_A11_inv = self.binet.mul(A21, A11_inv)
+        S = self.calc.subtract(A22, self.binet.mul(A21_A11_inv, A12))
 
-        B11 = self.calc.add(A11_inv, self.strassen.run(self.strassen.run( self.strassen.run(
-                                      self.strassen.run(A11_inv, A12), S22_inv), A21), A11_inv))
-        B12 = self.strassen.run(self.strassen.run(self.calc.negate(A11_inv), A12), S22_inv)
-        B21 = self.strassen.run(self.strassen.run(self.calc.negate(S22_inv), A21), A11_inv)
-        B22 = S22_inv
+        S_inv = self.invert(S)
 
-        if n % 2 != 0:
-            return self.calc.connect_block_matrices_dynamic_peeling(B11, B12, B21, B22)
-        else:
-            return self.calc.connect_block_matrices(B11, B12, B21, B22)
+        upper_left = self.calc.add(A11_inv, self.binet.mul(self.binet.mul(A11_inv_A12, S_inv), A21_A11_inv))
+        upper_right = self.calc.negate(self.binet.mul(A11_inv_A12, S_inv))
+        lower_left = self.calc.negate(self.binet.mul(S_inv, A21_A11_inv))
+        lower_right = S_inv
+
+
+        return self.calc.connect_block_matrices(upper_left, upper_right, lower_left, lower_right)
 
 
     def run(self, A):
@@ -79,9 +72,9 @@ class Inversion(BaseAlgorithm):
     #
     #     return A_inv
 
-    def _update_calc(self):
-        self.calc += self.strassen.calc
-        self.strassen.calc.reset_counters()
+    def _update_calculator(self):
+        self.calc += self.binet.calc
+        self.binet.calc.reset_counters()
 
 
 

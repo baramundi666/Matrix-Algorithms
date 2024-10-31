@@ -2,58 +2,63 @@ from src.base_algorithm import BaseAlgorithm
 from src.calculator import Calculator
 from src.algorithms.strassen_algorithm import StrassenAlgorithm
 from src.algorithms.Inverse import Inversion
-
+from src.algorithms.binet_algorithm import BinetAlgorithm
+import numpy as np
 
 class LUFactorization(BaseAlgorithm):
     def __init__(self):
         super().__init__()
         self.strassen = StrassenAlgorithm()
         self.inversion = Inversion()
+        binet = BinetAlgorithm()
+        self.mul = binet.mul
+        self.calcs = (binet.calc,  self.inversion.calc)
 
 
     def lu(self, matrix):
-        result = self.lu_recursive(matrix)
-        self._update_calc()
+        result = self.lu_factorization(matrix)
+        #self._update_calculator()
         return result
 
-    def lu_recursive(self, matrix):
-        n = len(matrix)
+    def lu_factorization(self, A):
+        n = len(A)
 
         if n == 1:
-            return [[1]], [[matrix[0][0]]]
+            L = np.array([[1]])
+            U = np.array([[A[0, 0]]])
+            return L, U
 
-        if n % 2 == 0:
-            A11, A12, A21, A22 = self.calc.split_into_block_matrices(matrix)
-        else:
-            A11, A12, A21, A22 = self.calc.split_into_block_matrices_dynamic_peeling(matrix)
+        A11, A12, A21, A22 = self.calc.split_into_block_matrices(A)
 
-        L11, U11 = self.lu_recursive(A11)
+        L11, U11 = self.lu_factorization(A11)
 
-        U11_inv = self.inversion.inverse(U11)
-        L11_inv = self.inversion.inverse(L11)
+        L21 = self.mul(A21, self.inversion.inverse(U11))
+        U12 = self.mul(self.inversion.inverse(L11), A12)
 
-        L21 = self.strassen.run(A21, U11_inv)
-        U12 = self.strassen.run(L11_inv, A12)
-        S = self.calc.subtract(A22, self.strassen.run(L21, U12))
+        S = self.calc.subtract(A22, self.mul(L21, U12))
 
-        Ls, Us = self.lu_recursive(S)
+        L22, U22 = self.lu_factorization(S)
 
-        if n % 2 == 0:
-            L = self.calc.connect_block_matrices(L11, [[0] * len(U12[0])] * len(L11), L21, Ls)
-            U = self.calc.connect_block_matrices(U11, U12, [[0] * len(L21[0])] * len(U11), Us)
-        else:
-            L = self.calc.connect_block_matrices_dynamic_peeling(L11, [[0] * len(U12[0])] * len(L11), L21, Ls)
-            U = self.calc.connect_block_matrices_dynamic_peeling(U11, U12, [[0] * len(L21[0])] * len(U11), Us)
+        L_top = np.hstack((L11, np.zeros_like(U12)))
+        L_bottom = np.hstack((L21, L22))
+        L = np.vstack((L_top, L_bottom))
+
+        U_top = np.hstack((U11, U12))
+        U_bottom = np.hstack((np.zeros_like(L21), U22))
+        U = np.vstack((U_top, U_bottom))
 
         return L, U
 
     def run(self, matrix):
         self.L, self.U = self.lu(matrix)
+        for calc in self.calcs:
+            self.calc += calc
 
 
-    def _update_calc(self):
-        self.calc += self.strassen.calc
-        self.calc += self.inversion.calc
-        self.strassen.calc.reset_counters()
+
+    # def _update_calculator(self):
+    #     self.calc += self.mul
+    #     self.calc += self.inversion.calc
+    #     self.mul.calc.reset_counters()
 
 
