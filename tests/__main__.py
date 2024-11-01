@@ -10,15 +10,15 @@ from tests.test_lu import TestLU
 
 
 def main():
-    test = TestLU()
+    test = TestInversion()
     test.run()
-#     write_data_to_file(test.data, f"{test.algorithm}-n{test.n}-")
-#
-#
-# def write_data_to_file(data, name):
-#     df = pd.DataFrame(data=data, index=["time", "flop"])
-#     time_snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-#     df.to_csv("data/" + name)
+    #write_data_to_file(test.data, f"{test.algorithm}-n{test.n}-")
+
+
+def write_data_to_file(data, name):
+    df = pd.DataFrame(data=data, index=["time", "flop"])
+    time_snapshot = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    df.to_csv("data/" + name)
 
 
 if __name__ == "__main__":

@@ -22,7 +22,6 @@ class LUFactorization:
 
     def lu_factorization(self, A):
         n = len(A)
-
         if n == 1:
             L = np.array([[1]])
             U = np.array([[A[0, 0]]])
@@ -54,6 +53,7 @@ class LUFactorization:
         self.L, self.U = self.lu(matrix)
         for calc in self.calcs:
             self.calc += calc
+            #self.calc += self.inversion.calc
 
 
 
@@ -62,4 +62,19 @@ class LUFactorization:
     #     self.calc += self.inversion.calc
     #     self.mul.calc.reset_counters()
 
-
+#
+# A = np.array([
+#     [0.54, 0.23, 0.67, 0.12, 0.45],
+#     [0.78, 0.34, 0.56, 0.91, 0.82],
+#     [0.13, 0.58, 0.44, 0.73, 0.27],
+#     [0.89, 0.62, 0.35, 0.29, 0.75],
+#     [0.48, 0.15, 0.92, 0.64, 0.51]
+# ])
+# luuu = LUFactorization()
+#
+# luuu.run(A)
+# print("L=")
+# print(luuu.L)
+#
+# print("U=")
+# print(luuu.U)

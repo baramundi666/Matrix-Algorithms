@@ -9,14 +9,14 @@ class TestLU(BaseAlgorithmTest):
         super().__init__()
         self.algorithm = LUFactorization()
         self.data = {}
-        self.n = 55
+        self.n = 500
 
 
 
     def run(self):
         #for test_size in range(800, self.n + 1, 25):
-        for test_size in range(50, self.n + 1):
-        #for test_size in [55]:
+        #for test_size in range(1, self.n + 1):
+        for test_size in [5]:
             self.generate_data(test_size)
             time = self._run_time_test(f"{test_size} x {test_size}", self.matrix_1)
             flop = self._extract_calculator_data()

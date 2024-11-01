@@ -14,15 +14,15 @@ def assert_matrix_multiplication_is_correct(matrix_1, matrix_2, matrix_3):
 
 
 
-def assert_matrix_inversion_is_correct(matrix, inverse_matrix, epsilon=1e-1):
+def assert_matrix_inversion_is_correct(matrix, inverse_matrix, epsilon=1e-3):
     identity_matrix = np.eye(len(matrix))
     product_matrix = np.dot(matrix, inverse_matrix)
-    assert np.allclose(product_matrix, identity_matrix, atol=epsilon, rtol=1e-1),  f"Matrix inversion wasn't successful"
+    assert np.allclose(product_matrix, identity_matrix, atol=epsilon, rtol=1e-3),  f"Matrix inversion wasn't successful"
     print("Matrix inversion was successful!")
 
 
 
-def assert_matrix_inversion(matrix, inverse_matrix, epsilon=1e-1):
+def assert_matrix_inversion(matrix, inverse_matrix, epsilon=1e-3):
     identity_matrix = np.linalg.inv(matrix)
     n = len(matrix)
     m = len(matrix[0])
@@ -33,10 +33,10 @@ def assert_matrix_inversion(matrix, inverse_matrix, epsilon=1e-1):
     print("Matrix inversion was successful!")
 
 
-def assert_lu_factorization_is_correct(matrix, L, U, epsilon=1e-1):
+def assert_lu_factorization_is_correct(matrix, L, U, epsilon=1e-3):
     matrix_np = np.array(matrix)
     L_np = np.array(L)
     U_np = np.array(U)
     product_matrix = np.dot(L_np, U_np)
-    assert np.allclose(product_matrix, matrix_np, atol=epsilon, rtol=1e-1), f"LU factorization wasn't successful: "
+    assert np.allclose(product_matrix, matrix_np, atol=epsilon, rtol=1e-3), f"LU factorization wasn't successful: "
     print("LU factorization was successful!")
