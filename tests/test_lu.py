@@ -9,7 +9,7 @@ class TestLU(BaseAlgorithmTest):
         super().__init__()
         self.algorithm = LUFactorization()
         self.data = {}
-        self.n = 55
+        self.n = 500
 
     def run(self):
         for test_size in [500]:

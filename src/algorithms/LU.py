@@ -21,7 +21,6 @@ class LUFactorization(BaseAlgorithm):
 
     def lu_factorization(self, A):
         n = len(A)
-
         if n == 1:
             L = np.array([[1]])
             U = np.array([[A[0, 0]]])
@@ -52,5 +51,3 @@ class LUFactorization(BaseAlgorithm):
         self.L, self.U = self.lu(matrix)
         for calc in self.calcs:
             self.calc += calc
-
-

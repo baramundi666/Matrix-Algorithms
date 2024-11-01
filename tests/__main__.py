@@ -11,7 +11,7 @@ from tests.test_lu import TestLU
 
 
 def main():
-    test = TestLU()
+    test = TestInversion()
     test.run()
     write_data_to_file(test.data, f"{test.algorithm}-n{test.n}-")
 
