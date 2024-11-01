@@ -1,9 +1,8 @@
 import numpy as np
 
 from src.algorithms.det_algorithm import DetAlgorithm
-from src.algorithms.gauss_algorithm import GaussAlgorithm
 from tests.base_algorithm_test import BaseAlgorithmTest
-from tests.utils import assert_gauss_elimination_is_correct, assert_determinant_is_correct
+from tests.utils import assert_determinant_is_correct
 
 
 class TestDetAlgorithm(BaseAlgorithmTest):
@@ -13,7 +12,7 @@ class TestDetAlgorithm(BaseAlgorithmTest):
         self.data = {}
 
     def run(self):
-        for test_size in [11]:
+        for test_size in range(1, 50):
             self.generate_data(test_size)
             time = self._run_time_test(f"{test_size} x {test_size}", self.A)
             flop = self._extract_calc_data()

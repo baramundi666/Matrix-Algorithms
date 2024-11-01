@@ -12,7 +12,7 @@ class TestGaussAlgorithm(BaseAlgorithmTest):
         self.data = {}
 
     def run(self):
-        for test_size in [11]:
+        for test_size in [500]:
             self.generate_data(test_size)
             time = self._run_time_test(f"{test_size} x {test_size}", self.A, self.b)
             flop = self._extract_calc_data()
