@@ -1,23 +1,22 @@
+from src.base_algorithm import BaseAlgorithm
 from src.calculator import Calculator
 from src.algorithms.strassen_algorithm import StrassenAlgorithm
 from src.algorithms.Inverse import Inversion
 from src.algorithms.binet_algorithm import BinetAlgorithm
 import numpy as np
 
-class LUFactorization:
+class LUFactorization(BaseAlgorithm):
     def __init__(self):
         super().__init__()
-        self.calc = Calculator()
         self.strassen = StrassenAlgorithm()
         self.inversion = Inversion()
         binet = BinetAlgorithm()
         self.mul = binet.mul
-        self.calcs = (binet.calc,  self.inversion.calc)
+        self.calcs = [binet.calc,  self.inversion.calc]
 
 
     def lu(self, matrix):
         result = self.lu_factorization(matrix)
-        #self._update_calculator()
         return result
 
     def lu_factorization(self, A):
@@ -49,32 +48,6 @@ class LUFactorization:
         return L, U
 
     def run(self, matrix):
-
         self.L, self.U = self.lu(matrix)
         for calc in self.calcs:
             self.calc += calc
-            #self.calc += self.inversion.calc
-
-
-
-    # def _update_calculator(self):
-    #     self.calc += self.mul
-    #     self.calc += self.inversion.calc
-    #     self.mul.calc.reset_counters()
-
-#
-# A = np.array([
-#     [0.54, 0.23, 0.67, 0.12, 0.45],
-#     [0.78, 0.34, 0.56, 0.91, 0.82],
-#     [0.13, 0.58, 0.44, 0.73, 0.27],
-#     [0.89, 0.62, 0.35, 0.29, 0.75],
-#     [0.48, 0.15, 0.92, 0.64, 0.51]
-# ])
-# luuu = LUFactorization()
-#
-# luuu.run(A)
-# print("L=")
-# print(luuu.L)
-#
-# print("U=")
-# print(luuu.U)

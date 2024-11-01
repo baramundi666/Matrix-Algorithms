@@ -1,4 +1,3 @@
-
 import numpy as np
 
 
@@ -20,8 +19,6 @@ class Calculator:
         self.divide_count = 0
 
     def add(self, matrix_1, matrix_2):
-        matrix_1, matrix_2 = np.array(matrix_1), np.array(matrix_2)
-
         n, m = matrix_1.shape
         self.total_count += n * m
         self.add_count += n * m
@@ -29,7 +26,6 @@ class Calculator:
         return np.add(matrix_1, matrix_2)
 
     def subtract(self, matrix_1, matrix_2):
-        matrix_1, matrix_2 = np.array(matrix_1), np.array(matrix_2)
         n, m = matrix_1.shape
         self.total_count += n * m
         self.subtract_count += n * m
@@ -37,8 +33,7 @@ class Calculator:
         return np.subtract(matrix_1, matrix_2)
 
     def negate(self, matrix):
-        n = len(matrix)
-        m = len(matrix[0])
+        n, m = matrix.shape
         self.total_count += n * m
         self.subtract_count += n * m
         return -matrix
@@ -83,14 +78,14 @@ class Calculator:
 
     def standard_matrix_multiplication(self, matrix_1, matrix_2):
         assert len(matrix_1[0]) == len(matrix_2), "Wrong shapes"
-
-        result = np.dot(matrix_1, matrix_2)
-
-        n, k, m = matrix_1.shape[0], matrix_1.shape[1], matrix_2.shape[1]
-        self.add_count += n * (k - 1) * m
+        n = len(matrix_1)
+        k = len(matrix_1[0])
+        m = len(matrix_2[0])
+        matrix = matrix_1 @ matrix_2
+        self.add_count += n * (k-1) * m
         self.multiply_count += n * k * m
-
-        return result
+        self.total_count += n * (k-1) * m + n * k * m
+        return matrix
 
     def crop_matrix_to_shape(self, matrix, shape):
         return matrix[:shape[0], :shape[1]]
