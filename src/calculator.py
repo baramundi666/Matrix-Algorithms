@@ -33,8 +33,7 @@ class Calculator:
         return np.subtract(matrix_1, matrix_2)
 
     def negate(self, matrix):
-        n = len(matrix)
-        m = len(matrix[0])
+        n, m = matrix.shape
         self.total_count += n * m
         self.subtract_count += n * m
         return -matrix
@@ -82,14 +81,11 @@ class Calculator:
         n = len(matrix_1)
         k = len(matrix_1[0])
         m = len(matrix_2[0])
-        matrix = [[0 for _ in range(m)] for _ in range(n)]
-        for i in range(n):
-            for j in range(m):
-                matrix[i][j] = np.sum(matrix_1[i, :] * matrix_2[:, j])
+        matrix = matrix_1 @ matrix_2
         self.add_count += n * (k-1) * m
         self.multiply_count += n * k * m
-
-        return np.array(matrix)
+        self.total_count += n * (k-1) * m + n * k * m
+        return matrix
 
     def crop_matrix_to_shape(self, matrix, shape):
         return matrix[:shape[0], :shape[1]]

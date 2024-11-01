@@ -11,10 +11,8 @@ class TestLU(BaseAlgorithmTest):
         self.data = {}
         self.n = 55
 
-
-
     def run(self):
-        for test_size in [10, 20, 30]:
+        for test_size in [500]:
             self.generate_data(test_size)
             time = self._run_time_test(f"{test_size} x {test_size}", self.matrix)
             flop = self._extract_calc_data()

@@ -1,20 +1,13 @@
 from src.base_algorithm import BaseAlgorithm
 from src.calculator import Calculator
-from src.algorithms.strassen_algorithm import StrassenAlgorithm
 from src.algorithms.binet_algorithm import BinetAlgorithm
-import numpy as np
 
 class Inversion(BaseAlgorithm):
     def __init__(self):
         super().__init__()
         self.calc = Calculator()
         self.binet = BinetAlgorithm()
-
-
-    def inverse(self, matrix):
-        result = self.invert(matrix)
-        self._update_calculator()
-        return result
+        self.cals = [self.binet.calc]
 
     def invert(self, A):
         if A.shape[0] == 1:
@@ -40,7 +33,9 @@ class Inversion(BaseAlgorithm):
 
 
     def run(self, A):
-        self.matrix_3 = self.inverse(A)
+        self.matrix_3 = self.invert(A)
+        for calc in self.calcs:
+            self.calc += calc
 
     # def inverse_numpy(self, matrix):
     #     matrix = np.array(matrix)
@@ -72,9 +67,6 @@ class Inversion(BaseAlgorithm):
     #
     #     return A_inv
 
-    def _update_calculator(self):
-        self.calc += self.binet.calc
-        self.binet.calc.reset_counters()
 
 
 

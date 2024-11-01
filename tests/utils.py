@@ -1,4 +1,5 @@
 import numpy as np
+import scipy
 
 
 def assert_matrix_multiplication_is_correct(matrix_1, matrix_2, matrix_3):
@@ -12,33 +13,15 @@ def assert_matrix_multiplication_is_correct(matrix_1, matrix_2, matrix_3):
             assert abs(expected_matrix[i,j] - actual_matrix[i,j]) < epsilon, f"Matrix multiplication wasn't successful: expected_matrix[{i},{j}] = {expected_matrix[i,j]} != actual_matrix[{i},{j}] = {actual_matrix[i,j]}"
     print("Matrix multiplication was successful!")
 
-
-
-def assert_matrix_inversion_is_correct(matrix, inverse_matrix, epsilon=1e-1):
-    identity_matrix = np.eye(len(matrix))
-    product_matrix = np.dot(matrix, inverse_matrix)
-    assert np.allclose(product_matrix, identity_matrix, atol=epsilon, rtol=1e-1),  f"Matrix inversion wasn't successful"
+def assert_matrix_inversion_is_correct(matrix, inverse_matrix):
+    epsilon = 1e-13
+    expected_inverse_matrix = np.linalg.inv(matrix)
+    assert np.allclose(expected_inverse_matrix, inverse_matrix, atol=epsilon, rtol=epsilon),  f"Matrix inversion wasn't successful"
     print("Matrix inversion was successful!")
 
-
-
-def assert_matrix_inversion(matrix, inverse_matrix, epsilon=1e-1):
-    identity_matrix = np.linalg.inv(matrix)
-    n = len(matrix)
-    m = len(matrix[0])
-    for i in range(n):
-        for j in range(m):
-            assert abs(inverse_matrix[i][j] - identity_matrix[
-                i][j]) < epsilon, f"Matrix inversion wasn't successful"
-    print("Matrix inversion was successful!")
-
-
-def assert_lu_factorization_is_correct(matrix, L, U, epsilon=1e-9):
-    matrix_np = np.array(matrix)
-    L_np = np.array(L)
-    U_np = np.array(U)
-    product_matrix = np.dot(L_np, U_np)
-    assert np.allclose(product_matrix, matrix_np, atol=epsilon, rtol=1e-9), f"LU factorization wasn't successful: "
+def assert_lu_factorization_is_correct(matrix, L, U):
+    epsilon = 1e-9
+    assert np.all(abs(L @ U - matrix) < epsilon), f"LU factorization wasn't successful"
     print("LU factorization was successful!")
 
 def assert_gauss_elimination_is_correct(expected_A, expected_b, A, b):

@@ -16,7 +16,7 @@ class GaussAlgorithm(BaseAlgorithm):
         self.inv = Inversion()
         binet = BinetAlgorithm()
         self.mul = binet.mul
-        self.calcs = (binet.calc, self.lu.calc, self.inv.calc)
+        self.calcs = [binet.calc, self.lu.calc, self.inv.calc]
 
     def __rec(self, A, b):
         n = len(A)
@@ -24,17 +24,15 @@ class GaussAlgorithm(BaseAlgorithm):
             return A, b
 
         n_half = n // 2
+        self.calc.divide_count += 1
+        self.calc.total_count += 1
         A_11, A_12, A_21, A_22 = self.calc.split_into_block_matrices(A)
         b_1, b_2 = self.calc.split_into_block_vectors(b)
 
-        # L_11, U_11 = self.lu_algorithm.lu(A_11)
-        L_11, U_11 = scipy.linalg.lu(A_11, permute_l=True)
+        L_11, U_11 = self.lu.lu(A_11)
 
-        # L_11_inv = self.inv_algorithm.inverse(L_11)
-        # U_11_inv = self.inv_algorithm.inverse(U_11)
-
-        L_11_inv = np.linalg.inv(L_11)
-        U_11_inv = np.linalg.inv(U_11)
+        L_11_inv = self.inv.inverse(L_11)
+        U_11_inv = self.inv.inverse(U_11)
 
         tmp = self.mul(self.mul(A_21, U_11_inv), L_11_inv)
         S = self.calc.subtract(A_22, self.mul(tmp, A_12))
