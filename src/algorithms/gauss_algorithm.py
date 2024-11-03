@@ -38,13 +38,13 @@ class GaussAlgorithm(BaseAlgorithm):
         L_S_inv = self.inv.inverse(L_S)
 
         b_1_new = self.mul(L_11_inv, b_1)
-        # b_2_new = self.calc.subtract(b_2, self.mul(tmp, b_1))
+        #b_2_new = self.calc.subtract(b_2, self.mul(tmp, b_1))
         b_2_new = self.calc.subtract(self.mul(L_S_inv, b_2), self.mul(L_S_inv, self.mul(tmp, b_1)))
 
         A_11_new = U_11
         A_12_new = self.mul(L_11_inv, A_12)
         A_21_new = np.zeros((n-n_half, n_half))
-        # A_22_new, b_2_new = self.__rec(S, b_2_new)
+        #A_22_new, b_2_new = self.__rec(S, b_2_new)
         A_22_new, b_2_new = self.__rec(U_S, b_2_new)
 
         A_new = self.calc.connect_block_matrices(A_11_new, A_12_new, A_21_new, A_22_new)

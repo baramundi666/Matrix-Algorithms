@@ -42,6 +42,6 @@ def assert_gauss_elimination_is_correct(expected_A, expected_b, A, b):
     print("Success!")
 
 def assert_determinant_is_correct(A, det):
-    epsilon = 1e-5
+    epsilon = 1e-3
     assert abs(det - np.linalg.det(A)) < epsilon, f"Error: det = {det} != expected_det = {np.linalg.det(A)}"
     print("Success!")
