@@ -13,7 +13,7 @@ def assert_matrix_multiplication_is_correct(matrix_1, matrix_2, matrix_3):
     print("Matrix multiplication was successful!")
 
 def assert_matrix_inversion_is_correct(matrix, inverse_matrix):
-    epsilon = 1e-3
+    epsilon = 1e-9
     n = matrix.shape[0]
     expected_inverse_matrix = scipy.linalg.inv(matrix)
     for i in range(n):
@@ -31,7 +31,7 @@ def assert_lu_factorization_is_correct(matrix, L, U):
     print("LU factorization was successful!")
 
 def assert_gauss_elimination_is_correct(expected_A, expected_b, A, b):
-    epsilon = 1e-2
+    epsilon = 1e-9
     n = len(A)
     expected_x = np.linalg.solve(expected_A, expected_b)
     x = np.linalg.solve(A, b)

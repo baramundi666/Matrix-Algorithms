@@ -57,3 +57,18 @@ class GaussAlgorithm(BaseAlgorithm):
         self.A, self.b = self.__rec(A, b)
         for calc in self.calcs:
             self.calc += calc
+
+    def local_matlab_test(self):
+        A = np.array([
+            [0.54, 0.23, 0.67, 0.12, 0.45],
+            [0.78, 0.34, 0.56, 0.91, 0.82],
+            [0.13, 0.58, 0.44, 0.73, 0.27],
+            [0.89, 0.62, 0.35, 0.29, 0.75],
+            [0.48, 0.15, 0.92, 0.64, 0.51]
+        ])
+
+        b = np.array([[0.56], [0.23], [0.89], [0.45], [0.67]])
+        A, b = self.__rec(A, b)
+        print(A)
+        print(b)
+

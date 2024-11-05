@@ -13,7 +13,7 @@ class TestDetAlgorithm(BaseAlgorithmTest):
         self.n = 300
 
     def run(self):
-        for test_size in range(1, 300):
+        for test_size in [5]:
             self.generate_data(test_size)
             time = self._run_time_test(f"{test_size} x {test_size}", self.A)
             flop = self._extract_calc_data()

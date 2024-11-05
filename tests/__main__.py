@@ -3,6 +3,8 @@ import datetime
 import numpy as np
 import pandas as pd
 
+from src.algorithms.det_algorithm import DetAlgorithm
+from src.algorithms.gauss_algorithm import GaussAlgorithm
 from tests.test_ai_algorithm import TestAIAlgorithm
 from tests.test_binet_algorithm import TestBinetAlgorithm
 from tests.test_det_algorithm import TestDetAlgorithm
@@ -14,8 +16,9 @@ from tests.test_lu import TestLU
 
 
 def main():
-    test = TestGaussAlgorithm()
-    test.run()
+    # test = TestLU()
+    # test.run()
+    TestDetAlgorithm().run()
     #write_data_to_file(test.data, f"{test.algorithm}-n{test.n}-")
 
 

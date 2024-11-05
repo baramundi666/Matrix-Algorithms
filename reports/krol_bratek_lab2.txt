@@ -1,0 +1,492 @@
+class Calculator:
+    def __init__(self):
+        self.total_count = 0
+        self.add_count = 0
+        self.subtract_count = 0
+        self.negate_count = 0
+        self.multiply_count = 0
+        self.divide_count = 0
+
+    def reset_counters(self):
+        self.total_count = 0
+        self.add_count = 0
+        self.subtract_count = 0
+        self.negate_count = 0
+        self.multiply_count = 0
+        self.divide_count = 0
+
+    def add(self, matrix_1, matrix_2):
+        n, m = matrix_1.shape
+        self.total_count += n * m
+        self.add_count += n * m
+
+        return np.add(matrix_1, matrix_2)
+
+    def subtract(self, matrix_1, matrix_2):
+        n, m = matrix_1.shape
+        self.total_count += n * m
+        self.subtract_count += n * m
+
+        return np.subtract(matrix_1, matrix_2)
+
+    def negate(self, matrix):
+        n, m = matrix.shape
+        self.total_count += n * m
+        self.subtract_count += n * m
+        return -matrix
+
+    def inverse_one_by_one_matrix(self, matrix):
+        self.total_count += 1
+        self.divide_count += 1
+        return np.array([[1 / matrix[0, 0]]])
+
+    def split_into_block_matrices(self, A):
+        n = A.shape[0]
+        n_half = n // 2
+        A_11, A_12, A_21, A_22 = (A[:n_half, :n_half], A[:n_half, n_half:],
+                                  A[n_half:, :n_half], A[n_half:, n_half:])
+        return A_11, A_12, A_21, A_22
+
+    def split_into_block_vectors(self, b):
+        n = len(b)
+        n_half = n // 2
+        b_1, b_2 = b[:n_half], b[n_half:]
+        return b_1, b_2
+
+    def connect_block_matrices(self, A_11, A_12, A_21, A_22):
+        top = np.concatenate((A_11, A_12), axis=1)
+        bottom = np.concatenate((A_21, A_22), axis=1)
+        A = np.concatenate((top, bottom), axis=0)
+        return A
+
+    def connect_block_vectors(self, b_1, b_2):
+        b = np.concatenate((b_1, b_2), axis=0)
+        return b
+
+    def split_into_block_matrices_dynamic_peeling(self, A):
+        n = len(A)
+        A_11, A_12, A_21, A_22 = (A[:n-1, :n-1], A[:n-1, n-1:],
+                                  A[n-1:, :n-1], A[n-1:, n-1:])
+        return A_11, A_12, A_21, A_22
+
+    def connect_block_matrices_dynamic_peeling(self, matrix_11, matrix_12, matrix_21, matrix_22):
+        return self.connect_block_matrices(matrix_11, matrix_12, matrix_21, matrix_22)
+
+    def standard_matrix_multiplication(self, matrix_1, matrix_2):
+        assert len(matrix_1[0]) == len(matrix_2), "Wrong shapes"
+        n = len(matrix_1)
+        k = len(matrix_1[0])
+        m = len(matrix_2[0])
+        matrix = matrix_1 @ matrix_2
+        self.add_count += n * (k-1) * m
+        self.multiply_count += n * k * m
+        self.total_count += n * (k-1) * m + n * k * m
+        return matrix
+
+    def crop_matrix_to_shape(self, matrix, shape):
+        return matrix[:shape[0], :shape[1]]
+
+    def expand_matrix_to_shape(self, A, shape):
+        n = len(A)
+        m = len(A[0])
+        return np.pad(A, ((0, shape[0] - n), (0, shape[1] - m)), mode='constant')
+
+    def __add__(self, other):
+        assert isinstance(other, Calculator)
+        new = Calculator()
+        new.total_count = self.total_count + other.total_count
+        new.add_count = self.add_count + other.add_count
+        new.subtract_count = self.subtract_count + other.subtract_count
+        new.negate_count = self.negate_count + other.negate_count
+        new.multiply_count = self.multiply_count + other.multiply_count
+        new.divide_count = self.divide_count + other.divide_count
+        return new
+
+class Inversion(BaseAlgorithm):
+    def __init__(self):
+        super().__init__()
+        self.matrix_inv = None
+        self.calc = Calculator()
+        self.binet = BinetAlgorithm()
+        self.cals = [self.binet.calc]
+
+    def inverse(self, matrix):
+        result = self.__rec_inverse(matrix)
+        return result
+
+    def __rec_inverse(self, A):
+        if A.shape[0] == 1:
+            return self.calc.inverse_one_by_one_matrix(A)
+
+        A11, A12, A21, A22 = self.calc.split_into_block_matrices(A)
+
+        A11_inv = self.__rec_inverse(A11)
+
+        A11_inv_A12 = self.binet.mul(A11_inv, A12)
+        A21_A11_inv = self.binet.mul(A21, A11_inv)
+        S = self.calc.subtract(A22, self.binet.mul(A21_A11_inv, A12))
+
+        S_inv = self.__rec_inverse(S)
+
+        B11 = self.calc.add(A11_inv, self.binet.mul(self.binet.mul(A11_inv_A12, S_inv), A21_A11_inv))
+        B12 = self.calc.negate(self.binet.mul(A11_inv_A12, S_inv))
+        B21 = self.calc.negate(self.binet.mul(S_inv, A21_A11_inv))
+        B22 = S_inv
+
+        return self.calc.connect_block_matrices(B11, B12, B21, B22)
+
+
+    def run(self, A):
+        self.matrix_inv = self.inverse(A)
+        for calc in self.calcs:
+            self.calc += calc
+
+class GaussAlgorithm(BaseAlgorithm):
+    def __init__(self):
+        super().__init__()
+        self.A = None
+        self.b = None
+        self.lu = LUFactorization()
+        self.inv = Inversion()
+        binet = BinetAlgorithm()
+        self.mul = binet.mul
+        self.calcs = [binet.calc, self.lu.calc, self.inv.calc]
+
+    def __rec(self, A, b):
+        n = len(A)
+        if n == 1:
+            return A, b
+
+        n_half = n // 2
+        A_11, A_12, A_21, A_22 = self.calc.split_into_block_matrices(A)
+        b_1, b_2 = self.calc.split_into_block_vectors(b)
+
+        L_11, U_11 = self.lu.lu(A_11)
+
+        L_11_inv = self.inv.inverse(L_11)
+        U_11_inv = self.inv.inverse(U_11)
+
+        tmp = self.mul(self.mul(A_21, U_11_inv), L_11_inv)
+        S = self.calc.subtract(A_22, self.mul(tmp, A_12))
+
+        L_S, U_S = self.lu.lu(S)
+        L_S_inv = self.inv.inverse(L_S)
+
+        b_1_new = self.mul(L_11_inv, b_1)
+        #b_2_new = self.calc.subtract(b_2, self.mul(tmp, b_1))
+        b_2_new = self.calc.subtract(self.mul(L_S_inv, b_2), self.mul(L_S_inv, self.mul(tmp, b_1)))
+
+        A_11_new = U_11
+        A_12_new = self.mul(L_11_inv, A_12)
+        A_21_new = np.zeros((n-n_half, n_half))
+        #A_22_new, b_2_new = self.__rec(S, b_2_new)
+        A_22_new, b_2_new = self.__rec(U_S, b_2_new)
+
+        A_new = self.calc.connect_block_matrices(A_11_new, A_12_new, A_21_new, A_22_new)
+        b_new = self.calc.connect_block_vectors(b_1_new, b_2_new)
+
+        return A_new, b_new
+
+
+    def run(self, A, b):
+        self.A, self.b = self.__rec(A, b)
+        for calc in self.calcs:
+            self.calc += calc
+
+    def local_matlab_test(self):
+        A = np.array([
+            [0.54, 0.23, 0.67, 0.12, 0.45],
+            [0.78, 0.34, 0.56, 0.91, 0.82],
+            [0.13, 0.58, 0.44, 0.73, 0.27],
+            [0.89, 0.62, 0.35, 0.29, 0.75],
+            [0.48, 0.15, 0.92, 0.64, 0.51]
+        ])
+
+        b = np.array([[0.56], [0.23], [0.89], [0.45], [0.67]])
+        A, b = self.__rec(A, b)
+        print(A)
+        print(b)
+
+class LUFactorization(BaseAlgorithm):
+    def __init__(self):
+        super().__init__()
+        self.strassen = StrassenAlgorithm()
+        self.inversion = Inversion()
+        binet = BinetAlgorithm()
+        self.mul = binet.mul
+        self.calcs = [binet.calc,  self.inversion.calc]
+
+
+    def lu(self, matrix):
+        result = self.lu_factorization(matrix)
+        return result
+
+    def lu_factorization(self, A):
+        n = len(A)
+        if n == 1:
+            L = np.array([[1]])
+            U = np.array([[A[0, 0]]])
+            return L, U
+
+        A11, A12, A21, A22 = self.calc.split_into_block_matrices(A)
+
+        L11, U11 = self.lu_factorization(A11)
+
+        L21 = self.mul(A21, self.inversion.inverse(U11))
+        U12 = self.mul(self.inversion.inverse(L11), A12)
+
+        S = self.calc.subtract(A22, self.mul(L21, U12))
+
+        L22, U22 = self.lu_factorization(S)
+
+        L = self.calc.connect_block_matrices(L11, np.zeros_like(U12), L21, L22)
+        U = self.calc.connect_block_matrices(U11, U12, np.zeros_like(L21), U22)
+
+        return L, U
+
+    def run(self, matrix):
+        self.L, self.U = self.lu(matrix)
+        for calc in self.calcs:
+            self.calc += calc
+
+class DetAlgorithm(BaseAlgorithm):
+    def __init__(self):
+        super().__init__()
+        self.A = None
+        self.det = None
+        self.lu = LUFactorization()
+
+    def __calculate_determinant(self, A):
+        n = A.shape[0]
+        if n == 1:
+            return A[0, 0]
+        _, U = self.lu.lu(A)
+        U_diag = np.diagonal(U).tolist()
+        k = n
+        U_1 = U_diag
+        U_2 = []
+        while k > 1:
+            u_1 = U_1.pop(0)
+            u_2 = U_1.pop(-1)
+            k -= 2
+            U_2.append(u_1 * u_2)
+            if k == 1:
+                U_2.append(U_1[0])
+            if k <= 1 and len(U_2) != 1:
+                U_1 = U_2
+                U_2 = []
+                k = len(U_1)
+        return U_2[0]
+
+    def run(self, A):
+        n = A.shape[0]
+        self.det = self.__calculate_determinant(A)
+        self.calc.multiply_count += n
+        self.calc.total_count += n
+        self.calc += self.lu.calc
+
+    def local_matlab_test(self):
+        A = np.array([
+            [0.54, 0.23, 0.67, 0.12, 0.45],
+            [0.78, 0.34, 0.56, 0.91, 0.82],
+            [0.13, 0.58, 0.44, 0.73, 0.27],
+            [0.89, 0.62, 0.35, 0.29, 0.75],
+            [0.48, 0.15, 0.92, 0.64, 0.51]
+        ])
+        self.run(A)
+        print(self.det)
+
+class TestInversion(BaseAlgorithmTest):
+    def __init__(self):
+        super().__init__()
+        self.algorithm = Inversion()
+        self.data = {}
+        self.n = 500
+
+
+
+    def run(self):
+        #range_ = range(300, self.n + 1, 50)
+        #for test_size in (2**k for k in range(10)):
+        #for test_size in range(1, self.n + 1):
+        for test_size in range(1, 100):
+            self.generate_data(test_size)
+            time = self._run_time_test(f"{test_size} x {test_size}", self.matrix)
+            flop = self._extract_calc_data()
+            self.data[test_size] = {"time": time,
+                                    "flop": flop}
+            assert_matrix_inversion_is_correct(self.matrix, self.algorithm.matrix_inv)
+
+    @classmethod
+    def generate_data(cls, test_size):
+        a, b = np.double(0.00000001), np.double(1.0)
+        cls.matrix = (b - a) * np.random.rand(test_size, test_size) + a
+
+class TestGaussAlgorithm(BaseAlgorithmTest):
+    def __init__(self):
+        super().__init__()
+        self.algorithm = GaussAlgorithm()
+        self.data = {}
+        self.n = 300
+
+    def run(self):
+        for test_size in range(1, 300):
+            self.generate_data(test_size)
+            time = self._run_time_test(f"{test_size} x {test_size}", self.A, self.b)
+            flop = self._extract_calc_data()
+            self.data[test_size] = {"time": time,
+                                    "flop": flop}
+            assert_gauss_elimination_is_correct(self.A, self.b, self.algorithm.A, self.algorithm.b)
+
+    @classmethod
+    def generate_data(cls, test_size):
+        a, b = np.double(0.00000001), np.double(1.0)
+        cls.A = (b-a) * np.random.rand(test_size, test_size) + a
+        cls.b = (b-a) * np.random.rand(test_size, 1) + a
+
+class TestLU(BaseAlgorithmTest):
+    def __init__(self):
+        super().__init__()
+        self.algorithm = LUFactorization()
+        self.data = {}
+        self.n = 100
+
+    def run(self):
+        for test_size in [5]:
+            self.generate_data(test_size)
+            time = self._run_time_test(f"{test_size} x {test_size}", self.matrix)
+            flop = self._extract_calc_data()
+            self.data[test_size] = {"time": time,
+                                    "flop": flop}
+            assert_lu_factorization_is_correct(self.matrix, self.algorithm.L, self.algorithm.U)
+
+    @classmethod
+    def generate_data(cls, test_size):
+        a, b = np.double(0.00000001), np.double(1.0)
+        cls.matrix = (b - a) * np.random.rand(test_size, test_size) + a
+
+class TestDetAlgorithm(BaseAlgorithmTest):
+    def __init__(self):
+        super().__init__()
+        self.algorithm = DetAlgorithm()
+        self.data = {}
+        self.n = 300
+
+    def run(self):
+        for test_size in [5]:
+            self.generate_data(test_size)
+            time = self._run_time_test(f"{test_size} x {test_size}", self.A)
+            flop = self._extract_calc_data()
+            self.data[test_size] = {"time": time,
+                                    "flop": flop}
+            assert_determinant_is_correct(self.A,self.algorithm.det)
+
+    @classmethod
+    def generate_data(cls, test_size):
+        a, b = np.double(0.00000001), np.double(1.0)
+        cls.A = (b-a) * np.random.rand(test_size, test_size) + a
+
+class BaseAlgorithm:
+    def __init__(self):
+        self.name = self.__class__.__name__
+        self.calc = Calculator()
+        self.calcs = list()
+
+    def run(self, *args):
+        pass
+
+    def reset_helper_calculators(self):
+        for calc in self.calcs:
+            calc.reset_counters()
+
+    def __str__(self):
+        return self.name
+
+    def __repr__(self):
+        return self.name
+
+from timeit import default_timer as timer
+from datetime import timedelta
+
+from src.base_algorithm import BaseAlgorithm
+
+
+class BaseAlgorithmTest:
+    def __init__(self):
+        self.algorithm = BaseAlgorithm()
+
+    def run(self):
+        pass
+
+    def _run_time_test(self, test_info: str, *args):
+        print(f"Running {self.algorithm}: {test_info}")
+        # time start
+        start = timer()
+        # run algorithm
+        self.algorithm.run(*args)
+        # time end
+        end = timer()
+        time_elapsed = end - start
+        print(f"Time: {timedelta(seconds=time_elapsed)}")
+        return time_elapsed
+
+
+    def _extract_calc_data(self):
+        # print(f"Atomic additions: {self.algorithm.calc.add_count}")
+        # print(f"Atomic subtractions: {self.algorithm.calc.subtract_count}")
+        # print(f"Atomic negations: {self.algorithm.calc.negate_count}")
+        # print(f"Atomic multiplications: {self.algorithm.calc.multiply_count}")
+        # print(f"Atomic divisions: {self.algorithm.calc.divide_count}")
+        total_count = self.algorithm.calc.total_count
+        print(f"FLOP: {total_count}")
+        self.algorithm.calc.reset_counters()
+        self.algorithm.reset_helper_calculators()
+        return total_count
+
+    @classmethod
+    def generate_data(cls, *args):
+        pass
+
+def assert_matrix_multiplication_is_correct(matrix_1, matrix_2, matrix_3):
+    epsilon = 1e-9
+    expected_matrix = np.matrix(matrix_1) @ np.matrix(matrix_2)
+    actual_matrix = np.matrix(matrix_3)
+    n, m = matrix_3.shape
+    for i in range(n):
+        for j in range(m):
+            assert abs(expected_matrix[i,j] - actual_matrix[i,j]) < epsilon, f"Matrix multiplication wasn't successful: expected_matrix[{i},{j}] = {expected_matrix[i,j]} != actual_matrix[{i},{j}] = {actual_matrix[i,j]}"
+    print("Matrix multiplication was successful!")
+
+def assert_matrix_inversion_is_correct(matrix, inverse_matrix):
+    epsilon = 1e-9
+    n = matrix.shape[0]
+    expected_inverse_matrix = scipy.linalg.inv(matrix)
+    for i in range(n):
+        for j in range(n):
+            assert abs(expected_inverse_matrix[i, j] - inverse_matrix[i, j]) < epsilon,  f"Matrix inversion wasn't successful: expected_inverse_matrix[{i},{j}] = {expected_inverse_matrix[i,j]} != inverse_matrix[{i},{j}] = {inverse_matrix[i,j]}"
+    print("Matrix inversion was successful!")
+
+def assert_lu_factorization_is_correct(matrix, L, U):
+    epsilon = 1e-9
+    n = matrix.shape[0]
+    expected = L @ U
+    for i in range(n):
+        for j in range(n):
+            assert abs(expected[i, j] - matrix[i, j]) < epsilon, f"LU factorization wasn't successful: expected[{i},{j}] = {expected[i,j]} != matrix[{i},{j}] = {matrix[i,j]}"
+    print("LU factorization was successful!")
+
+def assert_gauss_elimination_is_correct(expected_A, expected_b, A, b):
+    epsilon = 1e-9
+    n = len(A)
+    expected_x = np.linalg.solve(expected_A, expected_b)
+    x = np.linalg.solve(A, b)
+    for i in range(n):
+        for j in range(i-1, -1, -1):
+            assert abs(A[i, j]) < epsilon, f"Error: A[{i}, {j}] = {A[i, j]} != 0"
+        assert abs(x[i, 0] - expected_x[i, 0]) < epsilon, f"Error: x[{i}, 0] = {x[i, 0]} != expected_x[{i}, 0] = {expected_x[i, 0]}"
+    print("Success!")
+
+def assert_determinant_is_correct(A, det):
+    epsilon = 1e-3
+    assert abs(det - np.linalg.det(A)) < epsilon, f"Error: det = {det} != expected_det = {np.linalg.det(A)}"
+    print("Success!")

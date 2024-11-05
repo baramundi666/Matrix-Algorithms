@@ -37,13 +37,8 @@ class LUFactorization(BaseAlgorithm):
 
         L22, U22 = self.lu_factorization(S)
 
-        L_top = np.hstack((L11, np.zeros_like(U12)))
-        L_bottom = np.hstack((L21, L22))
-        L = np.vstack((L_top, L_bottom))
-
-        U_top = np.hstack((U11, U12))
-        U_bottom = np.hstack((np.zeros_like(L21), U22))
-        U = np.vstack((U_top, U_bottom))
+        L = self.calc.connect_block_matrices(L11, np.zeros_like(U12), L21, L22)
+        U = self.calc.connect_block_matrices(U11, U12, np.zeros_like(L21), U22)
 
         return L, U
 

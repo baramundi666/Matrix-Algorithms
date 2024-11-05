@@ -75,7 +75,6 @@ class Calculator:
     def connect_block_matrices_dynamic_peeling(self, matrix_11, matrix_12, matrix_21, matrix_22):
         return self.connect_block_matrices(matrix_11, matrix_12, matrix_21, matrix_22)
 
-
     def standard_matrix_multiplication(self, matrix_1, matrix_2):
         assert len(matrix_1[0]) == len(matrix_2), "Wrong shapes"
         n = len(matrix_1)

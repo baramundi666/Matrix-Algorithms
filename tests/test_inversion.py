@@ -11,8 +11,6 @@ class TestInversion(BaseAlgorithmTest):
         self.data = {}
         self.n = 500
 
-
-
     def run(self):
         #range_ = range(300, self.n + 1, 50)
         #for test_size in (2**k for k in range(10)):
