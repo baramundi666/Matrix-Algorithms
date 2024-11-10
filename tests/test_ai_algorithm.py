@@ -21,7 +21,7 @@ class TestAIAlgorithm(BaseAlgorithmTest):
         for shape in shapes:
             self.generate_data(shape)
             self._run_time_test(f"{shape[0]} x {shape[1]}, {shape[1]} x {shape[2]}", self.matrix_1, self.matrix_2)
-            self._extract_calculator_data()
+            self._extract_calc_data()
             assert_matrix_multiplication_is_correct(self.matrix_1, self.matrix_2, self.algorithm.matrix_3)
 
     @classmethod

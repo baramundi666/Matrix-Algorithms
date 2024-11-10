@@ -1,7 +1,5 @@
 import math
-
 from src.base_algorithm import BaseAlgorithm
-
 
 class StrassenAlgorithm(BaseAlgorithm):
     def __init__(self):
@@ -9,42 +7,35 @@ class StrassenAlgorithm(BaseAlgorithm):
         self.matrix_3 = None
 
     def run(self, matrix_1, matrix_2):
-        """
-        matrix_1, matrix_2 - square matrices with size 2^n x 2^n
-        """
-        n = len(matrix_1)
-        n_ = 2 ** math.ceil(math.log(n, 2))
-        matrix_1 = self.calculator.expand_matrix_to_shape(matrix_1, (n_, n_))
-        matrix_2 = self.calculator.expand_matrix_to_shape(matrix_2, (n_, n_))
-        matrix_3 = self.__rec(matrix_1, matrix_2)
-        self.matrix_3 = self.calculator.crop_matrix_to_shape(matrix_3, (n, n))
+        n = max(len(matrix_1), len(matrix_1[0]), len(matrix_2), len(matrix_2[0]))
+        n_ = 2 ** int(math.ceil(math.log2(n)))
+
+        matrix_1_expanded = self.calc.expand_matrix_to_shape(matrix_1, (n_, n_))
+        matrix_2_expanded = self.calc.expand_matrix_to_shape(matrix_2, (n_, n_))
+
+        result = self.__rec(matrix_1_expanded, matrix_2_expanded)
+        self.matrix_3 = self.calc.crop_matrix_to_shape(result, (len(matrix_1), len(matrix_2[0])))
+        return self.matrix_3
 
 
     def __rec(self, matrix_1, matrix_2):
         if len(matrix_1) == 1:
-            return self.calculator.multiply_one_by_one_matrices(matrix_1, matrix_2)
+            return self.calc.standard_matrix_multiplication(matrix_1, matrix_2)
 
-        matrix_1_11, matrix_1_12, matrix_1_21, matrix_1_22 = self.calculator.split_into_block_matrices(matrix_1)
-        matrix_2_11, matrix_2_12, matrix_2_21, matrix_2_22 = self.calculator.split_into_block_matrices(matrix_2)
+        A11, A12, A21, A22 = self.calc.split_into_block_matrices(matrix_1)
+        B11, B12, B21, B22 = self.calc.split_into_block_matrices(matrix_2)
 
-        p_1 = self.__rec(self.calculator.add(matrix_1_11, matrix_1_22), self.calculator.add(matrix_2_11, matrix_2_22))
-        p_2 = self.__rec(self.calculator.add(matrix_1_21, matrix_1_22), matrix_2_11)
-        p_3 = self.__rec(matrix_1_11, self.calculator.subtract(matrix_2_12, matrix_2_22))
-        p_4 = self.__rec(matrix_1_22, self.calculator.subtract(matrix_2_21, matrix_2_11))
-        p_5 = self.__rec(self.calculator.add(matrix_1_11, matrix_1_12), matrix_2_22)
-        p_6 = self.__rec(self.calculator.subtract(matrix_1_21, matrix_1_11), self.calculator.add(matrix_2_11, matrix_2_12))
-        p_7 = self.__rec(self.calculator.subtract(matrix_1_12, matrix_1_22), self.calculator.add(matrix_2_21, matrix_2_22))
+        P1 = self.__rec(self.calc.add(A11, A22), self.calc.add(B11, B22))
+        P2 = self.__rec(self.calc.add(A21, A22), B11)
+        P3 = self.__rec(A11, self.calc.subtract(B12, B22))
+        P4 = self.__rec(A22, self.calc.subtract(B21, B11))
+        P5 = self.__rec(self.calc.add(A11, A12), B22)
+        P6 = self.__rec(self.calc.subtract(A21, A11), self.calc.add(B11, B12))
+        P7 = self.__rec(self.calc.subtract(A12, A22), self.calc.add(B21, B22))
 
-        matrix_3_11 = self.calculator.add(self.calculator.subtract(self.calculator.add(p_1, p_4), p_5), p_7)
-        matrix_3_12 = self.calculator.add(p_3, p_5)
-        matrix_3_21 = self.calculator.add(p_2, p_4)
-        matrix_3_22 = self.calculator.add(self.calculator.add(self.calculator.subtract(p_1, p_2), p_3), p_6)
+        C11 = self.calc.add(self.calc.subtract(self.calc.add(P1, P4), P5), P7)
+        C12 = self.calc.add(P3, P5)
+        C21 = self.calc.add(P2, P4)
+        C22 = self.calc.add(self.calc.subtract(self.calc.add(P1, P3), P2), P6)
 
-        matrix_3 = self.calculator.connect_block_matrices(matrix_3_11, matrix_3_12, matrix_3_21, matrix_3_22)
-        return matrix_3
-
-
-
-
-
-
+        return self.calc.connect_block_matrices(C11, C12, C21, C22)
