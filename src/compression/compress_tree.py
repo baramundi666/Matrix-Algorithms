@@ -18,12 +18,8 @@ class CompressTree():
         self.children = []
 
 
-    def is_admissible(self,  U, S, V, r, epsilon):
-        if self.t_min + r == self.t_max or S[r] <= epsilon:
-            self.rank = r
-            self.set_leaf(U[:, :r], S[:r], V[:r, :])
-            return True
-        return False
+    def is_admissible(self, S, r, epsilon):
+        return self.t_min + r == self.t_max or S[r] <= epsilon
 
     def set_leaf(self, U, S, V):
         self.is_leaf = True
@@ -42,9 +38,10 @@ class CompressTree():
 
         U, Sigma, V = randomized_svd(matrix_block, n_components=r + 1, random_state=0)
         sigma = np.diag(Sigma)
-        if self.is_admissible( U,Sigma,V, r, epsilon):
+        if self.is_admissible(Sigma, r, epsilon):
+            self.rank = r
+            self.set_leaf(U[:, :r], Sigma[:r], V[:r, :])
             return self
-
         else:
             self.children = []
             new_t_max = (self.t_min + self.t_max) // 2
@@ -139,5 +136,8 @@ def test_compression(matrix, r=2, eps=1e-5, tolerance=1e-3):
         print("Zdekompresowana macierz różni się od oryginalnej.")
 
 
-# original_matrix = np.random.rand(8, 8)
+original_matrix = np.random.rand(4, 4)
 # test_compression(original_matrix)
+
+
+
