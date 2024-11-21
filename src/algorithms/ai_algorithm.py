@@ -5,9 +5,9 @@ import math
 
 
 class Matrix:
-    def __init__(self, data, calculator, multiplication):
+    def __init__(self, data, calc, multiplication):
         self.data = copy.deepcopy(data)
-        self.calculator = calculator
+        self.calc = calc
         self.multiplication = multiplication
         self.shape = (len(data), len(data[0]))
 
@@ -24,13 +24,13 @@ class Matrix:
         self.data[i][j] = item
 
     def __neg__(self):
-        return Matrix(self.calculator.negate(self.data), self.calculator, multiplication=self.multiplication)
+        return Matrix(self.calc.negate(self.data), self.calc, multiplication=self.multiplication)
 
     def __add__(self, other):
-        return Matrix(self.calculator.add(self.data, other.data), self.calculator, multiplication=self.multiplication)
+        return Matrix(self.calc.add(self.data, other.data), self.calc, multiplication=self.multiplication)
 
     def __sub__(self, other):
-        return Matrix(self.calculator.subtract(self.data, other.data), self.calculator, multiplication=self.multiplication)
+        return Matrix(self.calc.subtract(self.data, other.data), self.calc, multiplication=self.multiplication)
 
     def __matmul__(self, other):
         assert self.shape[1] == other.shape[0], "Wrong shape for multiplication"
@@ -40,13 +40,13 @@ class Matrix:
         return self.__matmul__(other)
 
     @classmethod
-    def empty(cls, n: int, m: int, calculator, multiplication):
+    def empty(cls, n: int, m: int, calc, multiplication):
         data = [[None for _ in range(m)] for _ in range(n)]
-        return cls(data, calculator, multiplication=multiplication)
+        return cls(data, calc, multiplication=multiplication)
 
     @classmethod
-    def in_place(cls, data, calculator, multiplication):
-        retval = Matrix([[]], calculator, multiplication=multiplication)
+    def in_place(cls, data, calc, multiplication):
+        retval = Matrix([[]], calc, multiplication=multiplication)
         retval.data = data
         retval.shape = (len(data), len(data[0]))
         return retval
@@ -151,7 +151,7 @@ class AIAlgorithm(BaseAlgorithm):
         return h
 
     def ai_compute_c(self, h, multiplication):
-        c = Matrix.empty(4, 5, self.calculator, multiplication=multiplication)
+        c = Matrix.empty(4, 5, self.calc, multiplication=multiplication)
 
         c[1, 1] = -h[10] + h[12] + h[14] - h[15] - h[16] + h[53] + h[5] - h[66] - h[7]
         c[2, 1] = h[10] + h[11] - h[12] + h[13] + h[15] + h[16] - h[17] - h[44] + h[51]
@@ -183,7 +183,7 @@ class AIAlgorithm(BaseAlgorithm):
     @staticmethod
     def submatrix(a, yrange: tuple[int, int], xrange: tuple[int, int]):
         data = [[a[i, j] for j in range(*xrange)] for i in range(*yrange)]
-        return Matrix.in_place(data, a.calculator, a.multiplication)
+        return Matrix.in_place(data, a.calc, a.multiplication)
 
     @staticmethod
     def _plant(dest, src, offset: tuple[int, int], src_shape: tuple[int, int]):
@@ -206,7 +206,7 @@ class AIAlgorithm(BaseAlgorithm):
                 src = a[i + 1, j + 1]
                 AIAlgorithm._plant(data, src.data, offset, src.shape)
 
-        return Matrix.in_place(data, a.calculator, a.multiplication)
+        return Matrix.in_place(data, a.calc, a.multiplication)
     def block(self, a, shape: tuple[int, int]):
         assert a.shape[0] >= shape[0] and a.shape[1] >= shape[1], "Matrix too small"
 
@@ -214,7 +214,7 @@ class AIAlgorithm(BaseAlgorithm):
         y = n // shape[0]
         x = m // shape[1]
 
-        retval = Matrix.empty(*shape, self.calculator, multiplication=a.multiplication)
+        retval = Matrix.empty(*shape, self.calc, multiplication=a.multiplication)
         for i in range(1, shape[0] + 1):
             for j in range(1, shape[1] + 1):
                 yrange = ((i - 1) * y + 1, i * y + 1)
@@ -228,8 +228,8 @@ class AIAlgorithm(BaseAlgorithm):
         return retval
 
     def __ai(self, A, B):
-        a = Matrix(A, self.calculator, multiplication=self.recursive_ai)
-        b = Matrix(B, self.calculator, multiplication=self.recursive_ai)
+        a = Matrix(A, self.calc, multiplication=self.recursive_ai)
+        b = Matrix(B, self.calc, multiplication=self.recursive_ai)
         return (a @ b).data
 
     @staticmethod
@@ -243,11 +243,11 @@ class AIAlgorithm(BaseAlgorithm):
             for j in range(a.shape[1]):
                 data[i][j] = a[i + 1, j + 1]
 
-        return Matrix.in_place(data, self.calculator, multiplication=a.multiplication)
+        return Matrix.in_place(data, self.calc, multiplication=a.multiplication)
     def recursive_ai(self, a, b):
         # Scales up matrices to powers of 4 and 5 by appending zeroes
         if a.shape[0] < 4 or a.shape[1] < 5 or b.shape[0] < 5 or b.shape[1] < 5:
-            return Matrix(self.calculator.standard_matrix_multiplication(a.data, b.data), self.calculator, multiplication=a.multiplication)
+            return Matrix(self.calc.standard_matrix_multiplication(a.data, b.data), self.calc, multiplication=a.multiplication)
         n, k = a.shape
         k, m = b.shape
         a = self.rescale(a, shape=(self.power(n, 4), self.power(k, 5)))
@@ -261,7 +261,7 @@ class AIAlgorithm(BaseAlgorithm):
     def recursive_ai_rec(self, a, b):
         # Works only for powers of 4 and 5
         if a.shape[0] < 4 or a.shape[1] < 5 or b.shape[0] < 5 or b.shape[1] < 5:
-            return Matrix(self.calculator.standard_matrix_multiplication(a.data, b.data), self.calculator, multiplication=a.multiplication)
+            return Matrix(self.calc.standard_matrix_multiplication(a.data, b.data), self.calc, multiplication=a.multiplication)
 
         A = self.block(a, shape=(4, 5))
         B = self.block(b, shape=(5, 5))
@@ -287,7 +287,7 @@ class AIAlgorithm(BaseAlgorithm):
         ]
         self.run(A1, B1)
         result = self.matrix_3
-        result2 = self.calculator.standard_matrix_multiplication(A1, B1)
+        result2 = self.calc.standard_matrix_multiplication(A1, B1)
         print(result)
         print(result2)
         assert result2 == result, "Error"
