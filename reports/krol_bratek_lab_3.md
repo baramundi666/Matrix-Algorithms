@@ -17,9 +17,18 @@
 	1. [Opis algorytmu](#decompress)
     2. [Pseudokod](#decompress_pseudo)
     3. [Fragment kodu](#decompress_fragment)
-
-4. [Wnioski](#wnioski)
-5. [Bibliografia](#biblio)
+4. [Wizualizacja](#wizualizacja)
+5. [Wykresy i bitmapy](#5-wykresy-i-bitmapy)
+    1. [Wartości osobliwe](#51-wartości-osobliwe)
+    2. [Nieskompresowana bitmapa](#52-nieskompresowana-bitmapa)
+    3. [Kompresja](#53-kompresja)
+        1. [Wariant 1](#531-wariant-1)
+        2. [Wariant 2](#532-wariant-2)
+        3. [Wariant 3](#533-wariant-3)
+        4. [Wariant 4](#534-wariant-4)
+        5. [Wariant 5](#535-wariant-5)
+        6. [Wariant 6](#536-wariant-6)
+6. [Bibliografia](#biblio)
 
 
 ## 1. Polecenie <a name="polecenie"></a>
@@ -212,11 +221,161 @@ def decompress(self):
 
         return decompressed_matrix
 ```
-	
-## 4. Wnioski  <a name="wnioski"></a>
+
+## 4. Wizualizacja <a name="wizualizacja"></a>
+### 4.1 Rysowacz skompresowanej macierzy <a name="wizualizacja"></a>
+```python
+class CompressTreeStructureVisualizer:
+    def __init__(self, compress_tree):
+        self.compress_tree = compress_tree
+
+    def visualize_tree_structure(self):
+        rows, cols = self.compress_tree.matrix.shape
+        structure = np.ones((rows, cols))
+
+        def mark_blocks(node):
+            if node.is_leaf:
+                if not node.zeros:
+                    structure[node.t_min:node.t_min + node.rank,
+                              node.s_min:node.s_max] = 0
+
+                    structure[node.t_min :node.t_max,
+                              node.s_min:node.s_min + node.rank] = 0
+            else:
+
+                for child in node.children:
+                    mark_blocks(child)
+
+        mark_blocks(self.compress_tree)
+
+        plt.figure(figsize=(10, 10))
+        plt.imshow(structure, cmap="gray", interpolation="nearest")
+        plt.title("Tree Structure Visualization (U, S, V blocks)")
+        plt.axis("off")
+        plt.show()
+```
+
+### 4.2 Rysowacz skompresowanej bitmapy <a name="wizualizacja"></a>
+```python
+def reconstruct_block(node):
+    if node.is_leaf:
+        if node.zeros:
+            return np.zeros((node.t_max - node.t_min, node.s_max - node.s_min))
+        else:
+            return node.U @ np.diag(node.S) @ node.V
+    else:
+        raise ValueError("Node is not a leaf.")
 
 
-## 5. Bibliografia  <a name="biblio"></a>
+class CompressTreeBitmapVisualizer:
+    def __init__(self, compress_tree):
+        self.compress_tree = compress_tree
+
+    def reconstruct_matrix(self):
+        matrix = np.zeros_like(self.compress_tree.matrix)
+        stack = [self.compress_tree]
+
+        while stack:
+            node = stack.pop()
+            if node.is_leaf:
+                block = reconstruct_block(node)
+                matrix[node.t_min:node.t_max, node.s_min:node.s_max] = block
+            else:
+                stack.extend(node.children)
+
+        return matrix
+
+    def draw_bitmap(self):
+        matrix = self.reconstruct_matrix()
+        return matrix
+```
+
+## 5. Wykresy i bitmapy 
+### 5.1 Wartości osobliwe 
+![alt text](figures/compression/singular_values.png)
+### 5.2 Nieskompresowana bitmapa 
+Wymiary: 512x512
+![alt text](figures/compression/original.png)
+![alt text](figures/compression/rgb_original.png)
+### 5.3 Kompresja 
+#### 5.3.1 Wariant 1 
+- r = 1
+- epsilon = sigma_1
+
+Macierze kompresji są identyczne dla R, G, B:
+![alt text](figures/compression/tree_var1.png)
+Wynikowe bitmapy R, G, B:
+![alt text](figures/compression/rgb_var1.png)
+Połączona bitmapa:
+
+![alt text](figures/compression/compr_var1.png)
+#### 5.3.2 Wariant 2
+- r = 1
+- epsilon = sigma_512
+
+Macierze kompresji dla R, G, B:
+![alt text](figures/compression/tree1_var2.png)
+![alt text](figures/compression/tree2_var2.png)
+![alt text](figures/compression/tree3_var2.png)
+Wynikowe bitmapy R, G, B:
+![alt text](figures/compression/rgb_var2.png)
+Połączona bitmapa:
+
+![alt text](figures/compression/compr_var2.png)
+#### 5.3.3 Wariant 3
+- r = 1
+- epsilon = sigma_256
+
+Macierze kompresji dla R, G, B:
+![alt text](figures/compression/tree1_var3.png)
+![alt text](figures/compression/tree2_var3.png)
+![alt text](figures/compression/tree3_var3.png)
+Wynikowe bitmapy R, G, B:
+![alt text](figures/compression/rgb_var3.png)
+Połączona bitmapa:
+
+![alt text](figures/compression/compr_var3.png)
+
+#### 5.3.4 Wariant 4
+- r = 4
+- epsilon = sigma_1
+
+Macierze kompresji są identyczne dla R, G, B:
+![alt text](figures/compression/tree_var4.png)
+Wynikowe bitmapy R, G, B:
+![alt text](figures/compression/rgb_var4.png)
+Połączona bitmapa:
+
+![alt text](figures/compression/compr_var4.png)
+#### 5.3.5 Wariant 5 
+- r = 4
+- epsilon = sigma_512
+
+Macierze kompresji dla R, G, B:
+![alt text](figures/compression/tree1_var5.png)
+![alt text](figures/compression/tree2_var5.png)
+![alt text](figures/compression/tree3_var5.png)
+Wynikowe bitmapy R, G, B:
+![alt text](figures/compression/rgb_var5.png)
+Połączona bitmapa:
+
+![alt text](figures/compression/compr_var5.png)
+#### 5.3.6 Wariant 6 
+- r = 4
+- epsilon = sigma_256
+
+Macierze kompresji dla R, G, B:
+![alt text](figures/compression/tree1_var6.png)
+![alt text](figures/compression/tree2_var6.png)
+![alt text](figures/compression/tree3_var6.png)
+Wynikowe bitmapy R, G, B:
+![alt text](figures/compression/rgb_var6.png)
+Połączona bitmapa:
+
+![alt text](figures/compression/compr_var6.png)
+
+
+## 6. Bibliografia  <a name="biblio"></a>
 - Wykłady prof. dr hab. Macieja Paszyńskiego (https://home.agh.edu.pl/~paszynsk/RM/RachunekMacierzowy1.pdf)
 
 

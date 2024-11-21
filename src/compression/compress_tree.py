@@ -36,8 +36,7 @@ class CompressTree():
             self.zeros = True
             return self
 
-        U, Sigma, V = randomized_svd(matrix_block, n_components=r + 1, random_state=0)
-        sigma = np.diag(Sigma)
+        U, Sigma, V = randomized_svd(matrix_block,n_components=r+1, random_state=0)
         if self.is_admissible(Sigma, r, epsilon):
             self.rank = r
             self.set_leaf(U[:, :r], Sigma[:r], V[:r, :])
@@ -110,7 +109,7 @@ def analyze(i, r=2, eps=1e-5):
 
 np.random.seed(42)
 i = np.random.randint(0, 256, (8, 8, 3))
-analyze(i)
+# analyze(i)
 
 
 
