@@ -41,12 +41,29 @@ def matrix_matrix_add(v, w):
         node.children = [matrix_matrix_add(vc, wc) for vc, wc in zip(v.children, w.children)]
         return node
     if not v.children and w.children:
-        children_list = split_compressed_matrix(v)
+        new_v = split_compressed_matrix(v)
         node = CompressTree(np.zeros((v.t_max - v.t_min, v.s_max - v.s_min)), v.t_min, v.t_max, v.s_min, v.s_max)
-        node.children = [matrix_matrix_add(children_list[i], w.children[i]) for i in range(4)]
+        node.children = [matrix_matrix_add(new_v.children[i], w.children[i]) for i in range(4)]
         return node
     if v.children and not w.children:
         return matrix_matrix_add(w, v)
+
+def mult_rec(v, w):
+    node = CompressTree(np.zeros((v.t_max - v.t_min, w.s_max - w.s_min)), v.t_min, v.t_max, w.s_min, w.s_max)
+    node.children = [
+        matrix_matrix_add(
+            matrix_matrix_mult(v.children[0], w.children[0]),
+            matrix_matrix_mult(v.children[1], w.children[2])),
+        matrix_matrix_add(
+            matrix_matrix_mult(v.children[0], w.children[1]),
+            matrix_matrix_mult(v.children[1], w.children[3])),
+        matrix_matrix_add(
+            matrix_matrix_mult(v.children[2], w.children[0]),
+            matrix_matrix_mult(v.children[3], w.children[2])),
+        matrix_matrix_add(
+            matrix_matrix_mult(v.children[2], w.children[1]),
+            matrix_matrix_mult(v.children[3], w.children[3]))]
+    return node
 
 def matrix_matrix_mult(v, w):
     if not v.children and not w.children:
@@ -59,61 +76,34 @@ def matrix_matrix_mult(v, w):
         node.set_leaf(new_U, new_S, new_V)
         return node
     if v.children and w.children:
-        node = CompressTree(np.zeros((v.t_max - v.t_min, w.s_max - w.s_min)), v.t_min, v.t_max, w.s_min, w.s_max)
-        node.children = [
-            matrix_matrix_add(
-                matrix_matrix_mult(v.children[0], w.children[0]),
-                matrix_matrix_mult(v.children[1], w.children[2])),
-            matrix_matrix_add(
-                matrix_matrix_mult(v.children[0], w.children[1]),
-                matrix_matrix_mult(v.children[1], w.children[3])),
-            matrix_matrix_add(
-                matrix_matrix_mult(v.children[2], w.children[0]),
-                matrix_matrix_mult(v.children[3], w.children[2])),
-            matrix_matrix_add(
-                matrix_matrix_mult(v.children[2], w.children[1]),
-                matrix_matrix_mult(v.children[3], w.children[3]))]
-        return node
-    if not v.children and w.children:
-        children_list = split_compressed_matrix(v)
-        node = CompressTree(np.zeros((v.t_max - v.t_min, v.s_max - v.s_min)), v.t_min, v.t_max, v.s_min, v.s_max)
-        node.children = [
-            matrix_matrix_add(
-                matrix_matrix_mult(children_list[0], w.children[0]),
-                matrix_matrix_mult(children_list[1], w.children[2])),
-            matrix_matrix_add(
-                matrix_matrix_mult(children_list[0], w.children[1]),
-                matrix_matrix_mult(children_list[1], w.children[3])),
-            matrix_matrix_add(
-                matrix_matrix_mult(children_list[2], w.children[0]),
-                matrix_matrix_mult(children_list[3], w.children[2])),
-            matrix_matrix_add(
-                matrix_matrix_mult(children_list[2], w.children[1]),
-                matrix_matrix_mult(children_list[3], w.children[3]))]
-        return node
-    if v.children and not w.children:
-        return matrix_matrix_mult(w, v)
+        return mult_rec(v, w)
+    if not v.children:
+        return matrix_matrix_mult(split_compressed_matrix(v), w)
+    if not w.children:
+        return matrix_matrix_mult(v, split_compressed_matrix(w))
+    return matrix_matrix_mult(w, v)
 
-def split_compressed_matrix(v) -> list[CompressTree]:
+def split_compressed_matrix(v) -> CompressTree:
     U_upper = v.U[:v.U.shape[0] // 2, :]
     U_lower = v.U[v.U.shape[0] // 2:, :]
     S_1 = v.S[:v.S.shape[0] // 2]
     S_2 = v.S[v.S.shape[0] // 2:]
     V_left = v.V[:, :v.V.shape[1] // 2]
     V_right = v.V[:, v.V.shape[1] // 2:]
-    children_list = [None for _ in range(4)]
-    children_list[0] = CompressTree(np.zeros((U_upper.shape[0], V_left.shape[1])), v.t_min, v.t_min + U_upper.shape[0], v.s_min,
+    node = CompressTree(np.zeros((v.t_max - v.t_min, v.s_max - v.s_min)), v.t_min, v.t_max, v.s_min, v.s_max)
+    node.children = [None for _ in range(4)]
+    node.children[0] = CompressTree(np.zeros((U_upper.shape[0], V_left.shape[1])), v.t_min, v.t_min + U_upper.shape[0], v.s_min,
                         v.s_min + V_left.shape[1])
-    children_list[0].set_leaf(U_upper, S_1, V_left)
-    children_list[1] = CompressTree(np.zeros((U_upper.shape[0], V_right.shape[1])), v.t_min, v.t_min + U_upper.shape[0],
+    node.children[0].set_leaf(U_upper, S_1, V_left)
+    node.children[1] = CompressTree(np.zeros((U_upper.shape[0], V_right.shape[1])), v.t_min, v.t_min + U_upper.shape[0],
                         v.s_min + V_left.shape[1], v.s_max)
-    children_list[1].set_leaf(U_upper, S_1, V_right)
-    children_list[2] = CompressTree(np.zeros((U_lower.shape[0], V_left.shape[1])), v.t_min + U_upper.shape[0], v.t_max, v.s_min,
+    node.children[1].set_leaf(U_upper, S_1, V_right)
+    node.children[2] = CompressTree(np.zeros((U_lower.shape[0], V_left.shape[1])), v.t_min + U_upper.shape[0], v.t_max, v.s_min,
                         v.s_min + V_left.shape[1])
-    children_list[2].set_leaf(U_lower, S_2, V_left)
-    children_list[3] = CompressTree(np.zeros((U_lower.shape[0], V_right.shape[1])), v.t_min + U_upper.shape[0], v.t_max,
+    node.children[2].set_leaf(U_lower, S_2, V_left)
+    node.children[3] = CompressTree(np.zeros((U_lower.shape[0], V_right.shape[1])), v.t_min + U_upper.shape[0], v.t_max,
                         v.s_min + V_left.shape[1], v.s_max)
-    children_list[3].set_leaf(U_lower, S_2, V_right)
-    return children_list
+    node.children[3].set_leaf(U_lower, S_2, V_right)
+    return node
 
 

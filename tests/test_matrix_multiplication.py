@@ -121,7 +121,7 @@ def test_grid_multiplication():
     decompressed_result = result_tree.decompress()
 
     for i in range(matrix_a.shape[0]):
-        for j in range(matrix_a.shape[1]):
+        for j in range(matrix_b.shape[1]):
             assert abs(decompressed_result[i, j] - expected_result[i, j]) < 1e-7, "expected_result[i, j] = {}, decompressed_result[i, j] = {}".format(expected_result[i, j], decompressed_result[i, j])
     print("Test passed for matrix_matrix_add")
 
