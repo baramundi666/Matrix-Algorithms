@@ -5,11 +5,28 @@ from timeit import default_timer as timer
 from src.compression.compress_tree import CompressTree
 from src.compression.compress_matrix_utils import matrix_matrix_add, matrix_vector_mult, matrix_matrix_mult
 
+def generate_full_matrix(k):
+    size = 2 ** k
+    matrix = np.zeros((size, size), dtype=float)
+    a, b = np.double(0.00000001), np.double(1.0)
+    for i in range(size):
+        for j in range(size):
+            matrix[i, j] = a + (b-a) * np.random.random()
+    return matrix
+
+def generate_full_vector(k):
+    size = 2 ** k
+    vector = np.zeros((size,1), dtype=float)
+    a, b = np.double(0.00000001), np.double(1.0)
+    for i in range(size):
+        vector[i, 0] = a + (b-a) * np.random.random()
+    return vector
 
 def generate_matrix(k):
     grid_size = 2 ** k
     total_size = grid_size ** 3
     matrix = np.zeros((total_size, total_size), dtype=float)
+    a, b = np.double(0.00000001), np.double(1.0)
     for z in range(grid_size):
         for y in range(grid_size):
             for x in range(grid_size):
@@ -20,15 +37,16 @@ def generate_matrix(k):
                 for nx, ny, nz in neighbors:
                     if 0 <= nx < grid_size and 0 <= ny < grid_size and 0 <= nz < grid_size:
                         neighbor_idx = nz * grid_size * grid_size + ny * grid_size + nx
-                        matrix[current_idx, neighbor_idx] = np.random.random()
+                        matrix[current_idx, neighbor_idx] = a + (b-a) * np.random.random()
     return matrix
 
 def generate_vector(k):
     grid_size = 2 ** k
     total_size = grid_size ** 3
     vector = np.zeros((total_size,1), dtype=float)
+    a, b = np.double(0.00000001), np.double(1.0)
     for i in range(total_size):
-        vector[i, 0] = np.random.random()
+        vector[i, 0] = a + (b-a) * np.random.random()
     return vector
 
 
@@ -136,35 +154,35 @@ def test_grid_multiplication():
 
 
 def time_test_matrix_vector_mult():
-    k = 4
-    matrix = generate_matrix(k)
-    vector = generate_vector(k)
     r = 1
     epsilon = 1e-7
-    compressed_matrix = CompressTree(matrix, 0, matrix.shape[0], 0, matrix.shape[1])
-    compressed_matrix.compress(r, epsilon)
-    print(f"Running compressed matrix by vector multiplication for size: 2^{3*k} x 2^{3*k}")
-    start = timer()
-    matrix_vector_mult(compressed_matrix, vector)
-    end = timer()
-    time_elapsed = end - start
-    print(f"Time: {timedelta(seconds=time_elapsed)}")
-    print(f"Time in seconds: {time_elapsed}")
+    for k in [2, 3, 4]:
+        matrix = generate_matrix(k)
+        vector = generate_vector(k)
+        compressed_matrix = CompressTree(matrix, 0, matrix.shape[0], 0, matrix.shape[1])
+        compressed_matrix.compress(r, epsilon)
+        print(f"Running compressed matrix by vector multiplication for size: 2^{3*k} x 2^{3*k}")
+        start = timer()
+        matrix_vector_mult(compressed_matrix, vector)
+        end = timer()
+        time_elapsed = end - start
+        print(f"Time: {timedelta(seconds=time_elapsed)}")
+        print(f"Time in seconds: {time_elapsed}")
 
 def time_test_matrix_matrix_mult():
-    k = 1
-    matrix_a = generate_matrix(k)
     r = 1
     epsilon = 1e-7
-    compressed_a = CompressTree(matrix_a, 0, matrix_a.shape[0], 0, matrix_a.shape[1])
-    compressed_a.compress(r, epsilon)
-    print(f"Running compressed matrix multiplication for size: 2^{3*k} x 2^{3*k}")
-    start = timer()
-    matrix_matrix_mult(compressed_a, compressed_a)
-    end = timer()
-    time_elapsed = end - start
-    print(f"Time: {timedelta(seconds=time_elapsed)}")
-    print(f"Time in seconds: {time_elapsed}")
+    for k in [2, 3, 4]:
+        matrix_a = generate_matrix(k)
+        compressed_a = CompressTree(matrix_a, 0, matrix_a.shape[0], 0, matrix_a.shape[1])
+        compressed_a.compress(r, epsilon)
+        print(f"Running compressed matrix multiplication for size: 2^{3*k} x 2^{3*k}")
+        start = timer()
+        matrix_matrix_mult(compressed_a, compressed_a)
+        end = timer()
+        time_elapsed = end - start
+        print(f"Time: {timedelta(seconds=time_elapsed)}")
+        print(f"Time in seconds: {time_elapsed}")
 
 
 if __name__ == "__main__":

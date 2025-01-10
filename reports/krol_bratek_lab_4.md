@@ -53,9 +53,39 @@ sąsiadujące wierzchołki siatki)
 
 
 ### 2.3 Fragment kodu  <a name="matrix_fragment"></a>
+```python
+import numpy as np
 
+def generate_matrix(k):
+    grid_size = 2 ** k
+    total_size = grid_size ** 3
+    matrix = np.zeros((total_size, total_size), dtype=float)
+    for z in range(grid_size):
+        for y in range(grid_size):
+            for x in range(grid_size):
+                current_idx = z * grid_size * grid_size + y * grid_size + x
+                neighbors = [(x - 1, y, z), (x + 1, y, z),
+                    (x, y - 1, z), (x, y + 1, z),
+                    (x, y, z - 1), (x, y, z + 1)]
+                for nx, ny, nz in neighbors:
+                    if 0 <= nx < grid_size and 0 <= ny < grid_size and 0 <= nz < grid_size:
+                        neighbor_idx = nz * grid_size * grid_size + ny * grid_size + nx
+                        matrix[current_idx, neighbor_idx] = np.random.random()
+    return matrix
+```
 ### 2.4 Rysunki <a name="matrix_rysunki"></a>
- 
+Rysunki przedstawiają reprezentację skompresowanych macierzy
+- r = 1
+- epsilon = 1e-7
+
+k = 2
+![tree_net_2.png](figures/compression/tree_net_2.png)
+
+k = 3
+![tree_net_3.png](figures/compression/tree_net_3.png)
+
+k = 4
+![tree_net_4.png](figures/compression/tree_net_4.png)
 
 
 ## 3. Mnożenie macierzy skompresowanej przez wektor <a name="vector"></a>
@@ -89,10 +119,22 @@ def matrix_vector_mult(v, X):
 ### 3.4 Wykres <a name="vector_wykres"></a>
 ![matrix_vector_mult_time.png](figures/compression/matrix_vector_mult_time.png)
 
-TODO: dodać dopasowanie wykresu !!!
+![matrix_vector_mult_time_fit.png](figures/compression/matrix_vector_mult_time_fit.png)
 
 ### 3.5 Norma Frobeniusa <a name="vector_norma"></a>
+Norma została obliczona na podstawie macierzy gęstej i wektora o wartościach z przedziału (0.00000001, 1.0)
 
+| matrix size | Frobenius norm |
+|-------------|:--------------:|
+| 2           |      0.0       |
+| 4           |      0.0       |
+| 8           |   1.602e-31    |
+| 16          |   3.944e-30    |
+| 32          |   2.682e-29    |
+| 64          |   3.282e-28    |
+| 128         |   1.578e-27    |
+| 256         |   1.217e-26    |
+| 512         |   1.349e-25    |
 	
 ## 4. Mnożenie macierzy skompresowanej przez samą siebie <a name="mulmatrix"></a>
 
@@ -223,11 +265,22 @@ def split_compressed_matrix(v) -> CompressTree:
 ### 3.4 Wykres <a name="mulmatrix_wykres"></a>
 ![matrix_matrix_mult_time.png](figures/compression/matrix_matrix_mult_time.png)
 
-TODO: dodać dopasowanie wykresu !!!
+![matrix_matrix_mult_time_fit.png](figures/compression/matrix_matrix_mult_time_fit.png)
 
 
 ### 3.5 Norma Frobeniusa <a name="mulmatrix_norma"></a>
+Norma została obliczona na podstawie macierzy gęstych o wartościach z przedziału (0.00000001, 1.0)
 
+| matrix size | Frobenius norm |
+|-------------|:--------------:|
+| 2           |   4.930e-32    |
+| 4           |   6.163e-32    |
+| 8           |   2.798e-30    |
+| 16          |   8.761e-29    |
+| 32          |   2.029e-27    |
+| 64          |   5.119e-26    |
+| 128         |   1.593e-24    |
+| 256         |   4.656e-23    |
 ## 5. Wnioski  <a name="wnioski"></a>
 
 
