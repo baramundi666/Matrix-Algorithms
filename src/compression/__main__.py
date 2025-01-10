@@ -1,16 +1,15 @@
 from PIL import Image
+from datetime import timedelta
+from timeit import default_timer as timer
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.utils.extmath import randomized_svd
 
+from src.compression.compress_matrix_utils import matrix_vector_mult, matrix_matrix_mult
 from src.compression.compress_tree import CompressTree
 from src.compression.visualizer import CompressTreeBitmapVisualizer, CompressTreeStructureVisualizer
-
-
-def main():
-    image_path = "images/city.jpg"
-    crop_box = (0, 0, 512, 512)
-    visualize_compressed_image(image_path, crop_box)
+from tests.test_compress_matrix_utils import generate_matrix, generate_vector, generate_full_matrix, \
+    generate_full_vector
 
 
 def visualize_compressed_image(image_path, crop_box, r=4, sigma_n=512):
@@ -109,6 +108,38 @@ def visualize_compressed_image(image_path, crop_box, r=4, sigma_n=512):
     reconstructed_image = Image.fromarray(reconstructed_bitmap)
     reconstructed_image.show()
 
+
+def lab3():
+    image_path = "images/city.jpg"
+    crop_box = (0, 0, 512, 512)
+    visualize_compressed_image(image_path, crop_box)
+
+
+def lab4():
+    r = 1
+    epsilon = 1e-7
+    for k in [9, 10, 11, 12, 13, 14, 15]:
+        matrix = generate_full_matrix(k)
+        compressed_matrix = CompressTree(matrix, 0, matrix.shape[0], 0, matrix.shape[1])
+        compressed_matrix.compress(r, epsilon)
+        print("compressed")
+        # visualizer = CompressTreeStructureVisualizer(compressed_matrix)
+        # visualizer.visualize_tree_structure()
+        vector = generate_full_vector(k)
+        y = matrix @ vector
+        # y = matrix @ matrix
+        start = timer()
+        y_dash = matrix_vector_mult(compressed_matrix, vector)
+        # y_dash = matrix_matrix_mult(compressed_matrix, compressed_matrix).decompress()
+        end = timer()
+        time_elapsed = end - start
+        print(f"Time for k={k}: {timedelta(seconds=time_elapsed)}")
+        print(f"Time in seconds: {time_elapsed}")
+        frobenius_norm = np.sum((y - y_dash) ** 2)
+        print(frobenius_norm)
+
+def main():
+    lab4()
 
 if __name__ == "__main__":
     main()

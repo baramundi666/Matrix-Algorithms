@@ -2,14 +2,14 @@ import numpy as np
 from sklearn.utils.extmath import randomized_svd
 
 
-class CompressTree():
+class CompressTree:
     def __init__(self, matrix, t_min, t_max, s_min, s_max):
         self.matrix = matrix
         self.t_min = t_min
         self.t_max = t_max
         self.s_min = s_min
         self.s_max = s_max
-        self.rank = None
+        self.rank = 0
         self.U = None
         self.S = None
         self.V = None
@@ -30,7 +30,7 @@ class CompressTree():
     def compress(self, r, epsilon):
         matrix_block = self.matrix[self.t_min:self.t_max, self.s_min:self.s_max]
 
-        if np.sum(matrix_block) == 0:
+        if np.allclose(matrix_block, np.zeros(matrix_block.shape)):
             self.rank = 0
             self.is_leaf = True
             self.zeros = True
