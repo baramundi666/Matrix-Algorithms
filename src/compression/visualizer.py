@@ -58,9 +58,13 @@ class CompressTreeStructureVisualizer:
 
         mark_blocks(self.compress_tree)
 
+        structure_ = np.zeros((rows+2, cols+2))
+        structure_[1:rows+1, 1:cols+1] = structure
+        structure = structure_
+
         plt.figure(figsize=(10, 10))
         plt.imshow(structure, cmap="gray", interpolation="nearest")
-        plt.title("Tree Structure Visualization (U, S, V blocks)")
+        plt.title("Compress tree structure visualization")
         plt.axis("off")
         plt.show()
 

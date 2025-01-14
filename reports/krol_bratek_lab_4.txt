@@ -1,0 +1,315 @@
+import matplotlib.pyplot as plt
+from src.compression.compress_tree import CompressTree
+import numpy as np
+
+def matrix_vector_mult(v, X):
+    if not v.children:
+        if v.rank == 0:
+            return np.zeros(X.shape)
+        return v.U @ np.diag(v.S) @ (v.V @ X)
+    rows = X.shape[0]
+    X1 = X[:rows // 2, :]
+    X2 = X[rows // 2:, :]
+    Y11 = matrix_vector_mult(v.children[0], X1)
+    Y12 = matrix_vector_mult(v.children[1], X2)
+    Y21 = matrix_vector_mult(v.children[2], X1)
+    Y22 = matrix_vector_mult(v.children[3], X2)
+
+    return np.vstack((Y11 + Y12, Y21 + Y22))
+
+def rSVDofCompressed(v, w, epsilon=1e-7):
+    n, k = v.U.shape[0], v.V.shape[1]
+    original_rank = v.rank
+    U_stacked = np.hstack((v.U, w.U))
+    V_stacked = np.vstack((v.V, w.V))
+    S_stacked = np.concatenate((v.S, w.S))
+    node = CompressTree(None, 0, n, 0, k)
+    node.set_leaf(U_stacked, S_stacked, V_stacked)
+    node.matrix = node.decompress()
+    node.compress(original_rank, epsilon)
+    return node
+
+def add_rec(v, w):
+    node = CompressTree(None, v.t_min, v.t_max, v.s_min, v.s_max)
+    node.rank = v.rank
+    node.children = [matrix_matrix_add(vc, wc) for vc, wc in zip(v.children, w.children)]
+    return node
+
+def matrix_matrix_add(v, w):
+    if v.zeros:
+        return w
+    if w.zeros:
+        return v
+    if not v.children and not w.children and v.rank == 0 and w.rank == 0:
+        node = CompressTree(None, v.t_min, v.t_max, v.s_min, v.s_max)
+        node.zeros = True
+        return node
+    if not v.children and not w.children and v.rank != 0 and w.rank != 0:
+        return rSVDofCompressed(v, w)
+    if v.children and w.children:
+        return add_rec(v, w)
+    if not v.children:
+        return matrix_matrix_add(split_compressed_matrix(v), w)
+    if not w.children:
+        return matrix_matrix_add(v, split_compressed_matrix(w))
+    return add_rec(v, w)
+
+def mult_rec(v, w):
+    node = CompressTree(None, v.t_min, v.t_max, w.s_min, w.s_max)
+    node.rank = v.rank
+    node.children = [
+        matrix_matrix_add(
+            matrix_matrix_mult(v.children[0], w.children[0]),
+            matrix_matrix_mult(v.children[1], w.children[2])),
+        matrix_matrix_add(
+            matrix_matrix_mult(v.children[0], w.children[1]),
+            matrix_matrix_mult(v.children[1], w.children[3])),
+        matrix_matrix_add(
+            matrix_matrix_mult(v.children[2], w.children[0]),
+            matrix_matrix_mult(v.children[3], w.children[2])),
+        matrix_matrix_add(
+            matrix_matrix_mult(v.children[2], w.children[1]),
+            matrix_matrix_mult(v.children[3], w.children[3]))]
+    return node
+
+def matrix_matrix_mult(v, w):
+    if v.zeros or w.zeros:
+        node = CompressTree(None, v.t_min, v.t_max, w.s_min, w.s_max)
+        node.zeros = True
+        return node
+    if not v.children and not w.children:
+        if v.rank == 0 or w.rank == 0:
+            node = CompressTree(None, v.t_min, v.t_max, w.s_min, w.s_max)
+            node.zeros = True
+            return node
+        new_U = v.U
+        new_S = v.S * w.S
+        new_V = (v.V @ w.U) @ w.V
+        node = CompressTree(None, v.t_min, v.t_max, w.s_min, w.s_max)
+        node.set_leaf(new_U, new_S, new_V)
+        node.rank = v.rank
+        return node
+    if v.children and w.children:
+        return mult_rec(v, w)
+    if not v.children:
+        return matrix_matrix_mult(split_compressed_matrix(v), w)
+    if not w.children:
+        return matrix_matrix_mult(v, split_compressed_matrix(w))
+    return matrix_matrix_mult(w, v)
+
+def split_compressed_matrix(v) -> CompressTree:
+    if v.rank == 1:
+        S_1 = v.S
+        S_2 = v.S
+    else:
+        S_1 = v.S[:v.S.shape[0] // 2]
+        S_2 = v.S[v.S.shape[0] // 2:]
+    U_upper = v.U[:v.U.shape[0] // 2, :]
+    U_lower = v.U[v.U.shape[0] // 2:, :]
+    V_left = v.V[:, :v.V.shape[1] // 2]
+    V_right = v.V[:, v.V.shape[1] // 2:]
+    node = CompressTree(None, v.t_min, v.t_max, v.s_min, v.s_max)
+    node.rank = v.rank
+    node.children = [None for _ in range(4)]
+    node.children[0] = CompressTree(None, v.t_min, v.t_min + U_upper.shape[0], v.s_min,
+                        v.s_min + V_left.shape[1])
+    node.children[0].rank = v.rank
+    node.children[0].set_leaf(U_upper, S_1, V_left)
+    node.children[1] = CompressTree(None, v.t_min, v.t_min + U_upper.shape[0],
+                        v.s_min + V_left.shape[1], v.s_max)
+    node.children[1].rank = v.rank
+    node.children[1].set_leaf(U_upper, S_2, V_right)
+    node.children[2] = CompressTree(None, v.t_min + U_upper.shape[0], v.t_max, v.s_min,
+                        v.s_min + V_left.shape[1])
+    node.children[2].rank = v.rank
+    node.children[2].set_leaf(U_lower, S_1, V_left)
+    node.children[3] = CompressTree(None, v.t_min + U_upper.shape[0], v.t_max,
+                        v.s_min + V_left.shape[1], v.s_max)
+    node.children[3].rank = v.rank
+    node.children[3].set_leaf(U_lower, S_2, V_right)
+    return node
+
+def reconstruct_block(node):
+    if node.is_leaf:
+        if node.zeros:
+            return np.zeros((node.t_max - node.t_min, node.s_max - node.s_min))
+        else:
+            return node.U @ np.diag(node.S) @ node.V
+    else:
+        raise ValueError("Node is not a leaf.")
+
+
+class CompressTreeBitmapVisualizer:
+    def __init__(self, compress_tree):
+        self.compress_tree = compress_tree
+
+    def reconstruct_matrix(self):
+        matrix = np.zeros_like(self.compress_tree.matrix)
+        stack = [self.compress_tree]
+
+        while stack:
+            node = stack.pop()
+            if node.is_leaf:
+                block = reconstruct_block(node)
+                matrix[node.t_min:node.t_max, node.s_min:node.s_max] = block
+            else:
+                stack.extend(node.children)
+
+        return matrix
+
+    def draw_bitmap(self):
+        matrix = self.reconstruct_matrix()
+        return matrix
+
+
+class CompressTreeStructureVisualizer:
+    def __init__(self, compress_tree):
+        self.compress_tree = compress_tree
+
+    def visualize_tree_structure(self):
+        rows, cols = self.compress_tree.matrix.shape
+        structure = np.ones((rows, cols))
+
+        def mark_blocks(node):
+            if node.is_leaf:
+                if not node.zeros:
+                    structure[node.t_min:node.t_min + node.rank,
+                              node.s_min:node.s_max] = 0
+
+                    structure[node.t_min :node.t_max,
+                              node.s_min:node.s_min + node.rank] = 0
+            else:
+
+                for child in node.children:
+                    mark_blocks(child)
+
+        mark_blocks(self.compress_tree)
+
+        structure_ = np.zeros((rows+2, cols+2))
+        structure_[1:rows+1, 1:cols+1] = structure
+        structure = structure_
+
+        plt.figure(figsize=(10, 10))
+        plt.imshow(structure, cmap="gray", interpolation="nearest")
+        plt.title("Compress tree structure visualization")
+        plt.axis("off")
+        plt.show()
+def lab4():
+    r = 1
+    epsilon = 1e-7
+    for k in [9, 10, 11, 12, 13, 14, 15]:
+        matrix = generate_full_matrix(k)
+        compressed_matrix = CompressTree(matrix, 0, matrix.shape[0], 0, matrix.shape[1])
+        compressed_matrix.compress(r, epsilon)
+        print("compressed")
+        # visualizer = CompressTreeStructureVisualizer(compressed_matrix)
+        # visualizer.visualize_tree_structure()
+        vector = generate_full_vector(k)
+        y = matrix @ vector
+        # y = matrix @ matrix
+        start = timer()
+        y_dash = matrix_vector_mult(compressed_matrix, vector)
+        # y_dash = matrix_matrix_mult(compressed_matrix, compressed_matrix).decompress()
+        end = timer()
+        time_elapsed = end - start
+        print(f"Time for k={k}: {timedelta(seconds=time_elapsed)}")
+        print(f"Time in seconds: {time_elapsed}")
+        frobenius_norm = np.sum((y - y_dash) ** 2)
+        print(frobenius_norm)
+
+def main():
+    lab4()
+
+def generate_full_matrix(k):
+    size = 2 ** k
+    matrix = np.zeros((size, size), dtype=float)
+    a, b = np.double(0.00000001), np.double(1.0)
+    for i in range(size):
+        for j in range(size):
+            matrix[i, j] = a + (b-a) * np.random.random()
+    return matrix
+
+def generate_full_vector(k):
+    size = 2 ** k
+    vector = np.zeros((size,1), dtype=float)
+    a, b = np.double(0.00000001), np.double(1.0)
+    for i in range(size):
+        vector[i, 0] = a + (b-a) * np.random.random()
+    return vector
+
+def generate_matrix(k):
+    grid_size = 2 ** k
+    total_size = grid_size ** 3
+    matrix = np.zeros((total_size, total_size), dtype=float)
+    a, b = np.double(0.00000001), np.double(1.0)
+    for z in range(grid_size):
+        for y in range(grid_size):
+            for x in range(grid_size):
+                current_idx = z * grid_size * grid_size + y * grid_size + x
+                neighbors = [(x - 1, y, z), (x + 1, y, z),
+                    (x, y - 1, z), (x, y + 1, z),
+                    (x, y, z - 1), (x, y, z + 1)]
+                for nx, ny, nz in neighbors:
+                    if 0 <= nx < grid_size and 0 <= ny < grid_size and 0 <= nz < grid_size:
+                        neighbor_idx = nz * grid_size * grid_size + ny * grid_size + nx
+                        matrix[current_idx, neighbor_idx] = a + (b-a) * np.random.random()
+    return matrix
+
+def generate_vector(k):
+    grid_size = 2 ** k
+    total_size = grid_size ** 3
+    vector = np.zeros((total_size,1), dtype=float)
+    a, b = np.double(0.00000001), np.double(1.0)
+    for i in range(total_size):
+        vector[i, 0] = a + (b-a) * np.random.random()
+    return vector
+
+def test_grid_multiplication():
+    matrix_a = generate_matrix(3)
+    matrix_b = generate_matrix(3)
+    expected_result = matrix_a @ matrix_b
+    r = 1
+    epsilon = 1e-7
+    compressed_a = CompressTree(matrix_a, 0, matrix_a.shape[0], 0, matrix_a.shape[1])
+    compressed_a.compress(r, epsilon)
+    compressed_b = CompressTree(matrix_b, 0, matrix_b.shape[0], 0, matrix_b.shape[1])
+    compressed_b.compress(r, epsilon)
+    result_tree = matrix_matrix_mult(compressed_a, compressed_b)
+    decompressed_result = result_tree.decompress()
+
+    for i in range(matrix_a.shape[0]):
+        for j in range(matrix_b.shape[1]):
+            assert abs(decompressed_result[i, j] - expected_result[i, j]) < 1e-7, "expected_result[i, j] = {}, decompressed_result[i, j] = {}".format(expected_result[i, j], decompressed_result[i, j])
+    print("Test passed for matrix_matrix_mult")
+
+
+def time_test_matrix_vector_mult():
+    r = 1
+    epsilon = 1e-7
+    for k in [2, 3, 4]:
+        matrix = generate_matrix(k)
+        vector = generate_vector(k)
+        compressed_matrix = CompressTree(matrix, 0, matrix.shape[0], 0, matrix.shape[1])
+        compressed_matrix.compress(r, epsilon)
+        print(f"Running compressed matrix by vector multiplication for size: 2^{3*k} x 2^{3*k}")
+        start = timer()
+        matrix_vector_mult(compressed_matrix, vector)
+        end = timer()
+        time_elapsed = end - start
+        print(f"Time: {timedelta(seconds=time_elapsed)}")
+        print(f"Time in seconds: {time_elapsed}")
+
+def time_test_matrix_matrix_mult():
+    r = 1
+    epsilon = 1e-7
+    for k in [2, 3, 4]:
+        matrix_a = generate_matrix(k)
+        compressed_a = CompressTree(matrix_a, 0, matrix_a.shape[0], 0, matrix_a.shape[1])
+        compressed_a.compress(r, epsilon)
+        print(f"Running compressed matrix multiplication for size: 2^{3*k} x 2^{3*k}")
+        start = timer()
+        matrix_matrix_mult(compressed_a, compressed_a)
+        end = timer()
+        time_elapsed = end - start
+        print(f"Time: {timedelta(seconds=time_elapsed)}")
+        print(f"Time in seconds: {time_elapsed}")
