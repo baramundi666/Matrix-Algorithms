@@ -341,9 +341,11 @@ do określonej rangi.
 	
 
 ### 4.3 Fragmenty kodu <a name="mulmatrix_fragment"></a>
+
 ```python
 import numpy as np
-from src.compression.compress_tree import CompressTree
+from src.algorithms.compression.compress_tree import CompressTree
+
 
 def rSVDofCompressed(v, w, epsilon=1e-7):
     n, k = v.U.shape[0], v.V.shape[1]
@@ -357,11 +359,13 @@ def rSVDofCompressed(v, w, epsilon=1e-7):
     node.compress(original_rank, epsilon)
     return node
 
+
 def add_rec(v, w):
     node = CompressTree(None, v.t_min, v.t_max, v.s_min, v.s_max)
     node.rank = v.rank
     node.children = [matrix_matrix_add(vc, wc) for vc, wc in zip(v.children, w.children)]
     return node
+
 
 def matrix_matrix_add(v, w):
     if v.zeros:
@@ -382,6 +386,7 @@ def matrix_matrix_add(v, w):
         return matrix_matrix_add(v, split_compressed_matrix(w))
     return add_rec(v, w)
 
+
 def mult_rec(v, w):
     node = CompressTree(None, v.t_min, v.t_max, w.s_min, w.s_max)
     node.rank = v.rank
@@ -399,6 +404,7 @@ def mult_rec(v, w):
             matrix_matrix_mult(v.children[2], w.children[1]),
             matrix_matrix_mult(v.children[3], w.children[3]))]
     return node
+
 
 def matrix_matrix_mult(v, w):
     if v.zeros or w.zeros:
@@ -425,6 +431,7 @@ def matrix_matrix_mult(v, w):
         return matrix_matrix_mult(v, split_compressed_matrix(w))
     return matrix_matrix_mult(w, v)
 
+
 def split_compressed_matrix(v) -> CompressTree:
     if v.rank == 1:
         S_1 = v.S
@@ -440,19 +447,19 @@ def split_compressed_matrix(v) -> CompressTree:
     node.rank = v.rank
     node.children = [None for _ in range(4)]
     node.children[0] = CompressTree(None, v.t_min, v.t_min + U_upper.shape[0], v.s_min,
-                        v.s_min + V_left.shape[1])
+                                    v.s_min + V_left.shape[1])
     node.children[0].rank = v.rank
     node.children[0].set_leaf(U_upper, S_1, V_left)
     node.children[1] = CompressTree(None, v.t_min, v.t_min + U_upper.shape[0],
-                        v.s_min + V_left.shape[1], v.s_max)
+                                    v.s_min + V_left.shape[1], v.s_max)
     node.children[1].rank = v.rank
     node.children[1].set_leaf(U_upper, S_2, V_right)
     node.children[2] = CompressTree(None, v.t_min + U_upper.shape[0], v.t_max, v.s_min,
-                        v.s_min + V_left.shape[1])
+                                    v.s_min + V_left.shape[1])
     node.children[2].rank = v.rank
     node.children[2].set_leaf(U_lower, S_1, V_left)
     node.children[3] = CompressTree(None, v.t_min + U_upper.shape[0], v.t_max,
-                        v.s_min + V_left.shape[1], v.s_max)
+                                    v.s_min + V_left.shape[1], v.s_max)
     node.children[3].rank = v.rank
     node.children[3].set_leaf(U_lower, S_2, V_right)
     return node

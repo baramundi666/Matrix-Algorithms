@@ -2,8 +2,8 @@ from datetime import timedelta
 
 import numpy as np
 from timeit import default_timer as timer
-from src.compression.compress_tree import CompressTree
-from src.compression.compress_matrix_utils import matrix_matrix_add, matrix_vector_mult, matrix_matrix_mult
+from src.algorithms.compression.compress_tree import CompressTree
+from src.algorithms.compression.compress_matrix_utils import matrix_matrix_add, matrix_vector_mult, matrix_matrix_mult
 
 def generate_full_matrix(k):
     size = 2 ** k

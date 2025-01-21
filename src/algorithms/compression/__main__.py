@@ -5,10 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.utils.extmath import randomized_svd
 
-from src.compression.compress_matrix_utils import matrix_vector_mult, matrix_matrix_mult
-from src.compression.compress_tree import CompressTree
-from src.compression.visualizer import CompressTreeBitmapVisualizer, CompressTreeStructureVisualizer
-from tests.test_compress_matrix_utils import generate_matrix, generate_vector, generate_full_matrix, \
+from src.algorithms.compression.compress_matrix_utils import matrix_vector_mult
+from src.algorithms.compression.compress_tree import CompressTree
+from src.algorithms.compression.visualizer import CompressTreeBitmapVisualizer, CompressTreeStructureVisualizer
+from tests.test_compress_matrix_utils import generate_full_matrix, \
     generate_full_vector
 
 
@@ -118,7 +118,7 @@ def lab3():
 def lab4():
     r = 1
     epsilon = 1e-7
-    for k in [9, 10, 11, 12, 13, 14, 15]:
+    for k in [4]:
         matrix = generate_full_matrix(k)
         compressed_matrix = CompressTree(matrix, 0, matrix.shape[0], 0, matrix.shape[1])
         compressed_matrix.compress(r, epsilon)

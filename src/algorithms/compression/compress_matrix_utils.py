@@ -1,5 +1,5 @@
 import numpy as np
-from src.compression.compress_tree import CompressTree
+from src.algorithms.compression.compress_tree import CompressTree
 
 def matrix_vector_mult(v, X):
     if not v.children:
